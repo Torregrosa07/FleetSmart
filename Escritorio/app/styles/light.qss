@@ -1,0 +1,65 @@
+/* --- TEMA CLARO --- */
+
+/* Fondo General (No blanco puro, un gris muy suave) */
+QWidget {
+    background-color: #f4f7f6; 
+    color: #333333;
+    font-family: "Montserrat";
+}
+
+/* Paneles (Blancos para resaltar sobre el fondo gris) */
+QFrame, QGroupBox {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0; /* Borde sutil */
+    border-radius: 8px;
+}
+
+/* Etiquetas */
+QLabel {
+    background-color: transparent;
+    color: #1f2937; /* Gris casi negro */
+}
+
+/* --- BOTONES (El MISMO azul que en el oscuro) --- */
+QPushButton {
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px;
+    font-weight: bold;
+}
+QPushButton:hover {
+    background-color: #2563eb;
+}
+QPushButton:pressed {
+    background-color: #1d4ed8;
+}
+
+/* --- INPUTS --- */
+QLineEdit, QTextEdit {
+    background-color: #ffffff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    color: #333;
+    padding: 4px;
+}
+
+/* --- TABLAS --- */
+QTableWidget {
+    background-color: #ffffff;
+    gridline-color: #e5e7eb;
+    color: #333;
+    border: none;
+}
+QTableWidget::item:selected {
+    background-color: #3b82f6;
+    color: white;
+}
+QHeaderView::section {
+    background-color: #e5e7eb;
+    color: #333;
+    border: none;
+    padding: 4px;
+    font-weight: bold;
+}

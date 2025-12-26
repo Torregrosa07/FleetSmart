@@ -1,0 +1,82 @@
+/* --- TEMA OSCURO --- */
+
+/* Fondo General (Ventana) */
+QWidget {
+    background-color: #282c34;
+    color: #abb2bf; /* Texto gris claro leíble */
+    font-family: "Montserrat";
+}
+
+/* Paneles, Sidebars y Marcos (Un tono más oscuro para contraste) */
+QFrame, QGroupBox {
+    background-color: #21252b; 
+    border: none;
+    border-radius: 8px;
+}
+
+/* Títulos y Etiquetas */
+QLabel {
+    background-color: transparent;
+    color: #ffffff;
+}
+
+/* --- BOTONES (Tu Azul Corporativo) --- */
+QPushButton {
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px;
+    font-weight: bold;
+}
+QPushButton:hover {
+    background-color: #2563eb; /* Un azul un poco más oscuro al pasar el ratón */
+}
+QPushButton:pressed {
+    background-color: #1d4ed8;
+}
+QPushButton:disabled {
+    background-color: #3b4048;
+    color: #6e7681;
+}
+
+/* --- INPUTS (Cajas de texto) --- */
+QLineEdit, QTextEdit, QPlainTextEdit {
+    background-color: #3b4048; /* Más claro que el fondo */
+    border: 1px solid #181a1f;
+    border-radius: 4px;
+    color: white;
+    padding: 4px;
+}
+
+/* --- COMBOS --- */
+QComboBox {
+    background-color: #3b4048;
+    border: 1px solid #181a1f;
+    border-radius: 4px;
+    color: white;
+    padding: 4px;
+}
+
+/* --- TABLAS --- */
+QTableWidget {
+    background-color: #21252b;
+    gridline-color: #3b4048;
+    border: none;
+    color: #abb2bf;
+}
+QTableWidget::item {
+    padding: 5px;
+}
+QTableWidget::item:selected {
+    background-color: #3b82f6; /* Selección azul */
+    color: white;
+}
+/* Cabecera de la tabla */
+QHeaderView::section {
+    background-color: #282c34;
+    color: white;
+    border: none;
+    padding: 4px;
+    font-weight: bold;
+}
