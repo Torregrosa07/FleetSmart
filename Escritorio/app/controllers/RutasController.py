@@ -2,7 +2,8 @@ import folium
 import io
 from PySide6.QtWidgets import QWidget, QMessageBox
 from PySide6.QtCore import QDate
-from geopy.geocoders import Nominatim  # <--- IMPORTANTE: Necesitamos esto
+# Importamos la librería para buscar coordenadas (Geocoding)
+from geopy.geocoders import Nominatim 
 
 from app.views.RutasWidget_ui import Ui_RutasWidget
 from app.models.ruta import Ruta
@@ -15,148 +16,208 @@ class RutasController(QWidget, Ui_RutasWidget):
         super().__init__()
         self.setupUi(self)
         
-        # Repositorios
+        # --- 1. INICIALIZAR LA CONEXIÓN DE DATOS ---
         self.repo_rutas = RutaRepository(db_connection)
         self.repo_conductores = ConductorRepository(db_connection)
         self.repo_vehiculos = VehiculoRepository(db_connection)
         
-        # Herramientas
-        self.geolocator = Nominatim(user_agent="fleetsmart_rutas")
+        # Herramienta para convertir direcciones en coordenadas (GPS)
+        # "user_agent" es necesario para identificarse ante el servicio de mapas
+        self.geolocalizador = Nominatim(user_agent="tfg_flotas_app")
         
-        # Datos temporales de la ruta que estamos creando
-        self.lista_paradas_data = [] # Aquí guardaremos: {'direccion': '...', 'coords': [x, y]}
-        self.origen_coords = None
-
-        # Configuración inicial
-        self.deFecha.setDate(QDate.currentDate())
-        self.cargar_combos()
-        self.inicializar_mapa_vacio()
+        # --- 2. VARIABLES DE MEMORIA ---
+        # Aquí guardaremos temporalmente los datos antes de dar a "Guardar"
+        self.coordenadas_origen = None  # Guardará [latitud, longitud] del origen
+        self.lista_destinos = []        # Lista de diccionarios: [{'direccion': '...', 'coords': [...]}]
         
-        # Conexiones
-        self.btnGuardarRuta.clicked.connect(self.guardar_ruta_final)
-        self.btnAgregarParada.clicked.connect(self.agregar_parada)
+        # --- 3. CONFIGURACIÓN INICIAL ---
+        self.deFecha.setDate(QDate.currentDate()) # Poner fecha de hoy
+        self.cargar_conductores_y_vehiculos()     # Rellenar los desplegables
+        self.dibujar_mapa_vacio()                 # Mostrar mapa inicial
         
-        # Si cambian el origen, intentamos buscarlo en el mapa también
-        self.leOrigen.editingFinished.connect(self.actualizar_origen)
+        # --- 4. CONECTAR LOS BOTONES ---
+        # Cuando el usuario termina de escribir el Origen (al pulsar Enter o cambiar de casilla)
+        self.leOrigen.editingFinished.connect(self.buscar_origen)
+        
+        # Botón "+" para añadir una parada a la lista
+        self.btnAgregarParada.clicked.connect(self.agregar_nueva_parada)
+        
+        # Botón final "Guardar Ruta"
+        self.btnGuardarRuta.clicked.connect(self.guardar_ruta_en_base_datos)
 
-    def inicializar_mapa_vacio(self):
-        self.actualizar_mapa_visual()
+    # =========================================================================
+    # LÓGICA DEL MAPA
+    # =========================================================================
 
-    def actualizar_origen(self):
-        """Busca las coordenadas del origen cuando el usuario termina de escribir"""
-        direccion = self.leOrigen.text().strip()
-        if not direccion: return
+    def dibujar_mapa_vacio(self):
+        """Muestra un mapa de España por defecto al iniciar"""
+        mapa = folium.Map(location=[40.4168, -3.7038], zoom_start=6)
+        self.mostrar_mapa_en_pantalla(mapa)
 
-        try:
-            location = self.geolocator.geocode(direccion)
-            if location:
-                self.origen_coords = [location.latitude, location.longitude]
-                self.actualizar_mapa_visual() # Redibujar mapa con el nuevo origen
-        except:
-            pass
+    def mostrar_mapa_en_pantalla(self, mapa_creado):
+        """Función auxiliar que coge el mapa de Folium y lo pinta en la ventana"""
+        datos = io.BytesIO()
+        mapa_creado.save(datos, close_file=False)
+        self.webMapRuta.setHtml(datos.getvalue().decode())
 
-    def agregar_parada(self):
-        """Añade una dirección a la lista y al mapa"""
-        direccion = self.leNuevaParada.text().strip()
-        if not direccion: return
+    def actualizar_mapa_con_ruta(self):
+        """
+        Esta función es el 'cerebro' visual. 
+        Borra el mapa anterior y dibuja uno nuevo con:
+        1. El punto de Origen (Verde)
+        2. Los puntos de Destino (Rojos)
+        3. Una línea azul que los une todos
+        """
+        # Si no tenemos origen, usamos el centro de España por defecto
+        centro = self.coordenadas_origen if self.coordenadas_origen else [40.4168, -3.7038]
+        mapa = folium.Map(location=centro, zoom_start=12)
+        
+        # Lista para guardar todos los puntos y poder dibujar la línea luego
+        puntos_para_linea = []
 
-        try:
-            # 1. Buscamos coordenadas
-            location = self.geolocator.geocode(direccion)
+        # 1. DIBUJAR ORIGEN (Si existe)
+        if self.coordenadas_origen:
+            folium.Marker(
+                location=self.coordenadas_origen,
+                popup="ORIGEN: " + self.leOrigen.text(),
+                icon=folium.Icon(color="green", icon="play", prefix="fa")
+            ).add_to(mapa)
+            puntos_para_linea.append(self.coordenadas_origen)
+
+        # 2. DIBUJAR PARADAS/DESTINOS
+        for i, parada in enumerate(self.lista_destinos):
+            coord = parada['coords']
+            direccion = parada['direccion']
             
-            if location:
-                coords = [location.latitude, location.longitude]
-                
-                # 2. Guardamos en memoria
-                parada_info = {
-                    "direccion": direccion,
-                    "coords": coords,
-                    "orden": len(self.lista_paradas_data) + 1
+            folium.Marker(
+                location=coord,
+                popup=f"Parada {i+1}: {direccion}",
+                icon=folium.Icon(color="red", icon="stop", prefix="fa")
+            ).add_to(mapa)
+            puntos_para_linea.append(coord)
+
+        # 3. DIBUJAR LÍNEA AZUL (Si hay al menos 2 puntos)
+        if len(puntos_para_linea) > 1:
+            folium.PolyLine(
+                locations=puntos_para_linea,
+                color="blue",
+                weight=4,
+                opacity=0.7
+            ).add_to(mapa)
+            
+            # Ajustar el zoom para que se vea toda la ruta
+            mapa.fit_bounds(puntos_para_linea)
+
+        self.mostrar_mapa_en_pantalla(mapa)
+
+    # =========================================================================
+    # LÓGICA DE DIRECCIONES (GEOCODING)
+    # =========================================================================
+
+    def buscar_origen(self):
+        """Se activa automáticamente al escribir en 'Origen'"""
+        texto_origen = self.leOrigen.text().strip()
+        
+        if not texto_origen:
+            return # Si está vacío, no hacemos nada
+
+        try:
+            ubicacion = self.geolocalizador.geocode(texto_origen)
+            if ubicacion:
+                # Guardamos las coordenadas
+                self.coordenadas_origen = [ubicacion.latitude, ubicacion.longitude]
+                # Actualizamos el mapa para mostrar el marcador verde
+                self.actualizar_mapa_con_ruta()
+        except Exception:
+            # Si falla internet o algo, no molestamos al usuario con popups constantes
+            print("No se pudo localizar el origen automáticamente")
+
+    def agregar_nueva_parada(self):
+        """Se activa al pulsar el botón '+'"""
+        texto_parada = self.leNuevaParada.text().strip()
+        
+        if not texto_parada:
+            QMessageBox.warning(self, "Aviso", "Escribe una dirección para la parada.")
+            return
+
+        try:
+            # Buscamos coordenadas
+            ubicacion = self.geolocalizador.geocode(texto_parada)
+            
+            if ubicacion:
+                # 1. Guardar en nuestra lista interna
+                datos_parada = {
+                    "direccion": texto_parada,
+                    "coords": [ubicacion.latitude, ubicacion.longitude],
+                    "orden": len(self.lista_destinos) + 1
                 }
-                self.lista_paradas_data.append(parada_info)
+                self.lista_destinos.append(datos_parada)
                 
-                # 3. Añadimos a la lista visual (ListWidget)
-                self.listParadas.addItem(f"{parada_info['orden']}. {direccion}")
+                # 2. Mostrar en la lista visual (la caja blanca de la izquierda)
+                self.listParadas.addItem(f"{datos_parada['orden']}. {texto_parada}")
+                
+                # 3. Limpiar la caja de texto para escribir otra
                 self.leNuevaParada.clear()
                 
-                # 4. Actualizamos el mapa
-                self.actualizar_mapa_visual()
+                # 4. Actualizar mapa (pintar el nuevo punto rojo y la línea)
+                self.actualizar_mapa_con_ruta()
             else:
-                QMessageBox.warning(self, "No encontrada", "No se encontró esa dirección en el mapa.")
+                QMessageBox.warning(self, "No encontrada", "No se encuentra esa dirección en el mapa.")
                 
         except Exception as e:
-            print(f"Error geocoding: {e}")
-            QMessageBox.warning(self, "Error", "Error de conexión al buscar dirección.")
+            QMessageBox.critical(self, "Error", f"Error de conexión: {e}")
 
-    def actualizar_mapa_visual(self):
-        """Dibuja todos los puntos (origen + paradas) y une con líneas"""
+    # =========================================================================
+    # LÓGICA DE DATOS
+    # =========================================================================
+
+    def cargar_conductores_y_vehiculos(self):
+        """Descarga datos de Firebase y rellena los ComboBox"""
+        self.cbConductor.clear()
+        self.cbVehiculo.clear()
         
-        # Centro por defecto (España) o el Origen si existe
-        centro = self.origen_coords if self.origen_coords else [40.4168, -3.7038]
-        m = folium.Map(location=centro, zoom_start=6 if not self.origen_coords else 13)
-
-        puntos_ruta = []
-
-        # 1. Pintar Origen (Marcador Verde)
-        if self.origen_coords:
-            folium.Marker(
-                self.origen_coords, 
-                popup="ORIGEN", 
-                icon=folium.Icon(color="green", icon="play", prefix="fa")
-            ).add_to(m)
-            puntos_ruta.append(self.origen_coords)
-
-        # 2. Pintar Paradas (Marcadores Rojos)
-        for p in self.lista_paradas_data:
-            coord = p['coords']
-            texto = f"{p['orden']}. {p['direccion']}"
+        # 1. Conductores
+        self.conductores_cargados = self.repo_conductores.obtener_todos()
+        for c in self.conductores_cargados:
+            self.cbConductor.addItem(f"{c.nombre} ({c.dni})")
             
-            folium.Marker(
-                coord, 
-                popup=texto, 
-                icon=folium.Icon(color="red", icon="map-marker", prefix="fa")
-            ).add_to(m)
-            puntos_ruta.append(coord)
+        # 2. Vehículos (Solo los Disponibles)
+        todos_coches = self.repo_vehiculos.obtener_todos()
+        self.vehiculos_disponibles = []
+        
+        for v in todos_coches:
+            if v.estado == "Disponible":
+                self.vehiculos_disponibles.append(v)
+                self.cbVehiculo.addItem(f"{v.marca} {v.modelo} - {v.matricula}")
 
-        # 3. Dibujar línea que une los puntos (Polilínea)
-        if len(puntos_ruta) > 1:
-            folium.PolyLine(
-                puntos_ruta,
-                color="blue",
-                weight=3.5,
-                opacity=1
-            ).add_to(m)
-            
-            # Ajustar zoom para que se vea toda la ruta
-            m.fit_bounds(puntos_ruta)
-
-        # Renderizar
-        data = io.BytesIO()
-        m.save(data, close_file=False)
-        self.webMapRuta.setHtml(data.getvalue().decode())
-
-    def guardar_ruta_final(self):
-        # Validaciones
-        if not self.origen_coords:
-            QMessageBox.warning(self, "Error", "El Origen no es válido o no se ha localizado.")
-            return
-        if not self.lista_paradas_data:
-            QMessageBox.warning(self, "Error", "Debes añadir al menos una parada/destino.")
+    def guardar_ruta_en_base_datos(self):
+        """Recoge todo y lo envía a Firebase"""
+        
+        # VALIDACIONES
+        if not self.coordenadas_origen:
+            QMessageBox.warning(self, "Falta Origen", "Escribe una dirección de Origen válida.")
             return
             
-        idx_cond = self.cbConductor.currentIndex()
-        idx_veh = self.cbVehiculo.currentIndex()
+        if len(self.lista_destinos) == 0:
+            QMessageBox.warning(self, "Falta Destino", "Añade al menos una parada o destino con el botón '+'.")
+            return
+            
+        idx_conductor = self.cbConductor.currentIndex()
+        idx_vehiculo = self.cbVehiculo.currentIndex()
         
-        if idx_cond == -1 or idx_veh == -1: return
+        if idx_conductor == -1 or idx_vehiculo == -1:
+            QMessageBox.warning(self, "Error", "Selecciona un conductor y un vehículo.")
+            return
 
-        # Crear objeto
-        conductor = self.conductores_cargados[idx_cond]
-        vehiculo = self.vehiculos_disponibles[idx_veh]
+        # RECUPERAR OBJETOS REALES
+        conductor = self.conductores_cargados[idx_conductor]
+        vehiculo = self.vehiculos_disponibles[idx_vehiculo]
 
+        # CREAR OBJETO RUTA
+        # Nota: Usamos 'origen' como texto y 'paradas' como la lista completa
         nueva_ruta = Ruta(
             origen=self.leOrigen.text(),
-            # Guardamos toda la lista de paradas
-            paradas=self.lista_paradas_data, 
+            paradas=self.lista_destinos, 
             id_conductor=conductor.id_conductor,
             nombre_conductor=conductor.nombre,
             id_vehiculo=vehiculo.id_vehiculo,
@@ -165,38 +226,22 @@ class RutasController(QWidget, Ui_RutasWidget):
             estado="Pendiente"
         )
         
+        # GUARDAR
         if self.repo_rutas.guardar_ruta(nueva_ruta):
-            QMessageBox.information(self, "Éxito", "Ruta multipunto creada correctamente.")
-            # Limpiar todo
+            QMessageBox.information(self, "Éxito", "Ruta creada y asignada correctamente.")
+            
+            # Limpiar formulario para la siguiente
             self.leOrigen.clear()
             self.leNuevaParada.clear()
             self.listParadas.clear()
-            self.lista_paradas_data = []
-            self.origen_coords = None
-            self.inicializar_mapa_vacio()
-        else:
-            QMessageBox.critical(self, "Error", "No se pudo guardar en Firebase.")
-    
-    # ... (Mantén tu método cargar_combos igual que antes) ...
-    def cargar_combos(self):
-        """Descarga conductores y vehículos para llenar las listas"""
-        print("🔄 Cargando datos para nueva ruta...")
-        
-        # A. Cargar Conductores
-        self.cbConductor.clear()
-        self.conductores_cargados = self.repo_conductores.obtener_todos()
-        
-        for c in self.conductores_cargados:
-            # Mostramos Nombre y DNI en el desplegable
-            self.cbConductor.addItem(f"{c.nombre} ({c.dni})")
+            self.lista_destinos = [] # Vaciar memoria
+            self.coordenadas_origen = None
+            self.dibujar_mapa_vacio()
             
-        # B. Cargar Vehículos (Solo los Disponibles)
-        
-        self.cbVehiculo.clear()
-        todos_vehiculos = self.repo_vehiculos.obtener_todos()
-        
-        # Filtramos en una lista aparte solo los que pueden viajar
-        self.vehiculos_disponibles = [v for v in todos_vehiculos if v.estado == "Disponible"]
-        
-        for v in self.vehiculos_disponibles:
-            self.cbVehiculo.addItem(f"{v.marca} {v.modelo} - {v.matricula}")
+            # Opcional: Actualizar estado del vehículo a "Ocupado"
+            # vehiculo.estado = "En Ruta"
+            # self.repo_vehiculos.actualizar_vehiculo(vehiculo)
+            # self.cargar_conductores_y_vehiculos() # Recargar listas
+            
+        else:
+            QMessageBox.critical(self, "Error", "No se pudo guardar en la base de datos.")

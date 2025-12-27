@@ -46,6 +46,8 @@ class ConductoresController(QWidget, Ui_ConductoresWidget):
             self.tablaCondcutores.setItem(i, 4, QTableWidgetItem(str(conductor.email)))
             self.tablaCondcutores.setItem(i, 5, QTableWidgetItem(str(conductor.telefono))) 
             
+            
+            
     def obtener_conductor_seleccionado(self):
         """Método auxiliar para saber qué conductor ha clicado el usuario"""
         fila_actual = self.tablaCondcutores.currentRow()
@@ -56,6 +58,7 @@ class ConductoresController(QWidget, Ui_ConductoresWidget):
             
         # Gracias a que guardamos la lista en el mismo orden que la tabla:
         return self.lista_conductores_actual[fila_actual]
+
 
     def borrar_seleccionado(self):
         conductor = self.obtener_conductor_seleccionado()
@@ -73,6 +76,8 @@ class ConductoresController(QWidget, Ui_ConductoresWidget):
             else:
                 QMessageBox.critical(self, "Error", "No se pudo borrar.")
 
+
+
     def editar_seleccionado(self):
         conductor = self.obtener_conductor_seleccionado()
         if not conductor: return
@@ -87,6 +92,8 @@ class ConductoresController(QWidget, Ui_ConductoresWidget):
                 self.cargar_tabla()
             else:
                 QMessageBox.critical(self, "Error", "Fallo al actualizar.")
+
+
 
     def crear_conductor(self):
         dialog = ConductorDialogController(self)
