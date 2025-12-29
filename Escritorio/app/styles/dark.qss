@@ -63,7 +63,7 @@ QTableWidget {
     background-color: #21252b;
     gridline-color: #3b4048;
     border: none;
-    color: #abb2bf;
+    color: #d9dce0;
 }
 QTableWidget::item {
     padding: 5px;

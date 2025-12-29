@@ -16,130 +16,117 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtWidgets import (QApplication, QComboBox, QDateEdit, QFormLayout,
-    QGroupBox, QHBoxLayout, QLabel, QLineEdit,
-    QListWidget, QListWidgetItem, QPushButton, QSizePolicy,
-    QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QApplication, QFormLayout, QGroupBox, QHBoxLayout,
+    QLabel, QLineEdit, QListWidget, QListWidgetItem,
+    QPushButton, QSizePolicy, QVBoxLayout, QWidget)
 
 class Ui_RutasWidget(object):
     def setupUi(self, RutasWidget):
         if not RutasWidget.objectName():
             RutasWidget.setObjectName(u"RutasWidget")
-        RutasWidget.resize(1220, 789)
+        RutasWidget.resize(1220, 785)
         self.horizontalLayout_2 = QHBoxLayout(RutasWidget)
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.groupBox = QGroupBox(RutasWidget)
         self.groupBox.setObjectName(u"groupBox")
-        self.groupBox.setMaximumSize(QSize(270, 16777215))
+        self.groupBox.setMaximumSize(QSize(300, 16777215))
+        font = QFont()
+        font.setFamilies([u"Montserrat"])
+        font.setPointSize(12)
+        self.groupBox.setFont(font)
         self.verticalLayout = QVBoxLayout(self.groupBox)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.formLayout_2 = QFormLayout()
         self.formLayout_2.setObjectName(u"formLayout_2")
+        self.lblNombreRuta = QLabel(self.groupBox)
+        self.lblNombreRuta.setObjectName(u"lblNombreRuta")
+        font1 = QFont()
+        font1.setFamilies([u"Montserrat"])
+        font1.setPointSize(16)
+        font1.setBold(True)
+        self.lblNombreRuta.setFont(font1)
+        self.lblNombreRuta.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.formLayout_2.setWidget(0, QFormLayout.ItemRole.LabelRole, self.lblNombreRuta)
+
+        self.leNombreRuta = QLineEdit(self.groupBox)
+        self.leNombreRuta.setObjectName(u"leNombreRuta")
+        self.leNombreRuta.setFont(font)
+
+        self.formLayout_2.setWidget(0, QFormLayout.ItemRole.FieldRole, self.leNombreRuta)
+
         self.lblOrigen = QLabel(self.groupBox)
         self.lblOrigen.setObjectName(u"lblOrigen")
-        font = QFont()
-        font.setFamilies([u"Montserrat"])
-        font.setPointSize(16)
-        font.setBold(True)
-        self.lblOrigen.setFont(font)
+        self.lblOrigen.setFont(font1)
         self.lblOrigen.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.formLayout_2.setWidget(0, QFormLayout.ItemRole.LabelRole, self.lblOrigen)
+        self.formLayout_2.setWidget(1, QFormLayout.ItemRole.LabelRole, self.lblOrigen)
 
         self.leOrigen = QLineEdit(self.groupBox)
         self.leOrigen.setObjectName(u"leOrigen")
-        font1 = QFont()
-        font1.setFamilies([u"Montserrat"])
-        font1.setPointSize(12)
-        self.leOrigen.setFont(font1)
+        self.leOrigen.setFont(font)
 
-        self.formLayout_2.setWidget(0, QFormLayout.ItemRole.FieldRole, self.leOrigen)
-
-        self.lblConductor = QLabel(self.groupBox)
-        self.lblConductor.setObjectName(u"lblConductor")
-        font2 = QFont()
-        font2.setFamilies([u"Montserrat"])
-        font2.setPointSize(12)
-        font2.setBold(True)
-        self.lblConductor.setFont(font2)
-        self.lblConductor.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        self.formLayout_2.setWidget(1, QFormLayout.ItemRole.LabelRole, self.lblConductor)
-
-        self.cbConductor = QComboBox(self.groupBox)
-        self.cbConductor.setObjectName(u"cbConductor")
-        self.cbConductor.setFont(font1)
-
-        self.formLayout_2.setWidget(1, QFormLayout.ItemRole.FieldRole, self.cbConductor)
-
-        self.lblVehiculo = QLabel(self.groupBox)
-        self.lblVehiculo.setObjectName(u"lblVehiculo")
-        font3 = QFont()
-        font3.setFamilies([u"Montserrat"])
-        font3.setPointSize(14)
-        font3.setBold(True)
-        self.lblVehiculo.setFont(font3)
-        self.lblVehiculo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        self.formLayout_2.setWidget(2, QFormLayout.ItemRole.LabelRole, self.lblVehiculo)
-
-        self.cbVehiculo = QComboBox(self.groupBox)
-        self.cbVehiculo.setObjectName(u"cbVehiculo")
-        self.cbVehiculo.setFont(font1)
-
-        self.formLayout_2.setWidget(2, QFormLayout.ItemRole.FieldRole, self.cbVehiculo)
-
-        self.lblFecha = QLabel(self.groupBox)
-        self.lblFecha.setObjectName(u"lblFecha")
-        self.lblFecha.setFont(font)
-        self.lblFecha.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        self.formLayout_2.setWidget(3, QFormLayout.ItemRole.LabelRole, self.lblFecha)
-
-        self.deFecha = QDateEdit(self.groupBox)
-        self.deFecha.setObjectName(u"deFecha")
-        self.deFecha.setFont(font1)
-        self.deFecha.setCalendarPopup(True)
-
-        self.formLayout_2.setWidget(3, QFormLayout.ItemRole.FieldRole, self.deFecha)
+        self.formLayout_2.setWidget(1, QFormLayout.ItemRole.FieldRole, self.leOrigen)
 
 
         self.verticalLayout.addLayout(self.formLayout_2)
 
-        self.formLayout = QFormLayout()
-        self.formLayout.setObjectName(u"formLayout")
+        self.horizontalLayout_5 = QHBoxLayout()
+        self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
         self.lblConductor_2 = QLabel(self.groupBox)
         self.lblConductor_2.setObjectName(u"lblConductor_2")
+        font2 = QFont()
+        font2.setFamilies([u"Montserrat"])
+        font2.setPointSize(12)
+        font2.setBold(True)
         self.lblConductor_2.setFont(font2)
         self.lblConductor_2.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.formLayout.setWidget(0, QFormLayout.ItemRole.LabelRole, self.lblConductor_2)
+        self.horizontalLayout_5.addWidget(self.lblConductor_2)
 
-        self.leNuevaParada = QLineEdit(self.groupBox)
-        self.leNuevaParada.setObjectName(u"leNuevaParada")
-        self.leNuevaParada.setFont(font1)
-
-        self.formLayout.setWidget(1, QFormLayout.ItemRole.SpanningRole, self.leNuevaParada)
-
+        self.horizontalLayout_4 = QHBoxLayout()
+        self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
         self.btnAgregarParada = QPushButton(self.groupBox)
         self.btnAgregarParada.setObjectName(u"btnAgregarParada")
         self.btnAgregarParada.setEnabled(True)
         self.btnAgregarParada.setMaximumSize(QSize(60, 60))
-        font4 = QFont()
-        font4.setFamilies([u"Montserrat"])
-        font4.setPointSize(13)
-        font4.setWeight(QFont.Black)
-        font4.setStrikeOut(False)
-        self.btnAgregarParada.setFont(font4)
+        font3 = QFont()
+        font3.setFamilies([u"Montserrat"])
+        font3.setPointSize(13)
+        font3.setWeight(QFont.Black)
+        font3.setStrikeOut(False)
+        self.btnAgregarParada.setFont(font3)
         self.btnAgregarParada.setStyleSheet(u"background-color: #3b82f6; color: white;")
         self.btnAgregarParada.setCheckable(True)
 
-        self.formLayout.setWidget(0, QFormLayout.ItemRole.FieldRole, self.btnAgregarParada)
+        self.horizontalLayout_4.addWidget(self.btnAgregarParada)
+
+        self.btnEliminarParada = QPushButton(self.groupBox)
+        self.btnEliminarParada.setObjectName(u"btnEliminarParada")
+        self.btnEliminarParada.setEnabled(True)
+        self.btnEliminarParada.setMaximumSize(QSize(60, 60))
+        self.btnEliminarParada.setFont(font3)
+        self.btnEliminarParada.setStyleSheet(u"background-color: rgb(255, 52, 25); color: white;")
+        self.btnEliminarParada.setCheckable(True)
+
+        self.horizontalLayout_4.addWidget(self.btnEliminarParada)
 
 
-        self.verticalLayout.addLayout(self.formLayout)
+        self.horizontalLayout_5.addLayout(self.horizontalLayout_4)
+
+
+        self.verticalLayout.addLayout(self.horizontalLayout_5)
+
+        self.leNuevaParada = QLineEdit(self.groupBox)
+        self.leNuevaParada.setObjectName(u"leNuevaParada")
+        font4 = QFont()
+        font4.setFamilies([u"Montserrat"])
+        font4.setPointSize(10)
+        self.leNuevaParada.setFont(font4)
+
+        self.verticalLayout.addWidget(self.leNuevaParada)
 
         self.listParadas = QListWidget(self.groupBox)
         self.listParadas.setObjectName(u"listParadas")
@@ -151,7 +138,7 @@ class Ui_RutasWidget(object):
         self.btnGuardarRuta.setObjectName(u"btnGuardarRuta")
         self.btnGuardarRuta.setEnabled(True)
         self.btnGuardarRuta.setMaximumSize(QSize(16777215, 60))
-        self.btnGuardarRuta.setFont(font4)
+        self.btnGuardarRuta.setFont(font3)
         self.btnGuardarRuta.setStyleSheet(u"background-color: #3b82f6; color: white;")
         self.btnGuardarRuta.setCheckable(True)
 
@@ -188,13 +175,12 @@ class Ui_RutasWidget(object):
     def retranslateUi(self, RutasWidget):
         RutasWidget.setWindowTitle(QCoreApplication.translate("RutasWidget", u"Form", None))
         self.groupBox.setTitle(QCoreApplication.translate("RutasWidget", u"Nueva Ruta", None))
+        self.lblNombreRuta.setText(QCoreApplication.translate("RutasWidget", u"Nombre:", None))
         self.lblOrigen.setText(QCoreApplication.translate("RutasWidget", u"Origen:  ", None))
-        self.lblConductor.setText(QCoreApplication.translate("RutasWidget", u"Conductor: ", None))
-        self.lblVehiculo.setText(QCoreApplication.translate("RutasWidget", u"Veh\u00edculo: ", None))
-        self.lblFecha.setText(QCoreApplication.translate("RutasWidget", u"Fecha: ", None))
         self.lblConductor_2.setText(QCoreApplication.translate("RutasWidget", u"Nueva Parada: ", None))
-        self.leNuevaParada.setPlaceholderText(QCoreApplication.translate("RutasWidget", u"Escribe una direcci\u00f3n y pulsa +", None))
         self.btnAgregarParada.setText(QCoreApplication.translate("RutasWidget", u"+", None))
+        self.btnEliminarParada.setText(QCoreApplication.translate("RutasWidget", u"-", None))
+        self.leNuevaParada.setPlaceholderText(QCoreApplication.translate("RutasWidget", u"Escribe una direcci\u00f3n y pulsa + ", None))
         self.btnGuardarRuta.setText(QCoreApplication.translate("RutasWidget", u"Guardar Ruta", None))
     # retranslateUi
 

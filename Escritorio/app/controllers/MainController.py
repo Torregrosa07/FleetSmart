@@ -6,6 +6,7 @@ from app.controllers.VehiclesController import VehiclesController
 from app.controllers.ConductoresController import ConductoresController
 from app.controllers.SettingsController import SettingsController
 from app.controllers.RutasController import RutasController
+from app.controllers.AsignacionController import AsignacionController
 import pyrebase
 from app.config import FIREBASE_CONFIG
 
@@ -24,6 +25,8 @@ class MainWindowController(QMainWindow, Ui_MainWindow):
         self.vista_vehiculos = VehiclesController(self.db)
         self.vista_conductores = ConductoresController(self.db)
         self.vista_rutas = RutasController(self.db)
+        self.vista_asignaciones = AsignacionController(self.db)
+        
 
         # 3. Añadirlas al Stacked Widget (el contenedor cambiante)
         # OJO: Guardamos el índice que nos devuelve addWidget para usarlo luego
@@ -31,6 +34,7 @@ class MainWindowController(QMainWindow, Ui_MainWindow):
         self.idx_vehiculos = self.stackContent.addWidget(self.vista_vehiculos)
         self.idx_conductores = self.stackContent.addWidget(self.vista_conductores)
         self.idx_rutas = self.stackContent.addWidget(self.vista_rutas)
+        self.idx_asignaciones = self.stackContent.addWidget(self.vista_asignaciones)
 
         # 4. Conectar Botones del Menú Lateral
         self.btnCommandCenter.clicked.connect(self.ir_a_mapa)
@@ -38,6 +42,7 @@ class MainWindowController(QMainWindow, Ui_MainWindow):
         self.btnDrivers.clicked.connect(self.ir_a_conductores)
         self.btnRoutes.clicked.connect(self.ir_a_rutas)
         self.btnSettings.clicked.connect(self.abrir_ajustes)
+        self.btnAssign.clicked.connect(self.ir_a_asignaciones)
         
         self.actualizar_fecha()
         
@@ -95,17 +100,15 @@ class MainWindowController(QMainWindow, Ui_MainWindow):
     def ir_a_conductores(self):
         # Cambiar el stack a la vista de vehículos
         self.stackContent.setCurrentIndex(self.idx_conductores)
-        
         self.lblPageTitle.setText("Gestión de Conductores")
         
-        self.btnCommandCenter.setChecked(False)
-        self.btnDrivers.setChecked(True)
+        
         
     def ir_a_rutas(self):
         self.stackContent.setCurrentIndex(self.idx_rutas)
         self.lblPageTitle.setText("Creación de Rutas")
-        # Actualizar estado visual de los botones
-        self.btnCommandCenter.setChecked(False)
-        self.btnVehicles.setChecked(False)
-        self.btnDrivers.setChecked(False)
-        self.btnRoutes.setChecked(True)
+        
+        
+    def ir_a_asignaciones(self):
+        self.stackContent.setCurrentIndex(self.idx_asignaciones)
+        self.lblPageTitle.setText("Gestión de Conductores")

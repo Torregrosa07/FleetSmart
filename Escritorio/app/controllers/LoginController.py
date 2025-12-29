@@ -15,7 +15,6 @@ class LoginController(QWidget, Ui_Login):
         # CONEXIONES
         # Ahora sí conectamos tu botón
         self.btnLogin.clicked.connect(self.handle_login)
-        # Y también el Enter en la contraseña para que sea cómodo
         self.lePass.returnPressed.connect(self.handle_login)
 
         # Limpiar mensajes
@@ -39,7 +38,6 @@ class LoginController(QWidget, Ui_Login):
             user = self.auth.login(email, password)
             
             # Si no falla, emitimos la señal con los datos
-            print("Login correcto, avisando a AppController...")
             self.login_success.emit(user)
             
         except Exception as e:

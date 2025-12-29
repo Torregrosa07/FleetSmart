@@ -1,7 +1,6 @@
 import io
 import folium
 from PySide6.QtWidgets import QWidget
-# No necesitamos importar QWebEngineView ni QVBoxLayout porque ya están en tu UI
 from app.views.CommandCenterPage_ui import Ui_CommandCenterPage
 
 class CommandCenterController(QWidget, Ui_CommandCenterPage):
@@ -20,7 +19,7 @@ class CommandCenterController(QWidget, Ui_CommandCenterPage):
         folium.Marker(
             coordenadas_centro, 
             popup="Sede Central", 
-            icon=folium.Icon(color="red", icon="building", prefix="fa")
+            icon=folium.Icon(color="blue", icon="home", prefix="fa")
         ).add_to(m)
         
         data = io.BytesIO()
