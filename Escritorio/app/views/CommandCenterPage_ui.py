@@ -17,8 +17,8 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import (QApplication, QFrame, QGroupBox, QHBoxLayout,
-    QLabel, QListWidget, QListWidgetItem, QSizePolicy,
-    QVBoxLayout, QWidget)
+    QLabel, QListWidget, QListWidgetItem, QPushButton,
+    QSizePolicy, QVBoxLayout, QWidget)
 
 class Ui_CommandCenterPage(object):
     def setupUi(self, CommandCenterPage):
@@ -103,7 +103,9 @@ class Ui_CommandCenterPage(object):
         self.frameLeyenda.setObjectName(u"frameLeyenda")
         self.frameLeyenda.setFrameShape(QFrame.Shape.StyledPanel)
         self.frameLeyenda.setFrameShadow(QFrame.Shadow.Raised)
-        self.verticalLayout_4 = QVBoxLayout(self.frameLeyenda)
+        self.horizontalLayout_2 = QHBoxLayout(self.frameLeyenda)
+        self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
+        self.verticalLayout_4 = QVBoxLayout()
         self.verticalLayout_4.setObjectName(u"verticalLayout_4")
         self.lblLeyenda1 = QLabel(self.frameLeyenda)
         self.lblLeyenda1.setObjectName(u"lblLeyenda1")
@@ -131,6 +133,24 @@ class Ui_CommandCenterPage(object):
         self.verticalLayout_4.addWidget(self.lblLeyenda3)
 
 
+        self.horizontalLayout_2.addLayout(self.verticalLayout_4)
+
+        self.btnActualizar = QPushButton(self.frameLeyenda)
+        self.btnActualizar.setObjectName(u"btnActualizar")
+        self.btnActualizar.setEnabled(True)
+        self.btnActualizar.setMaximumSize(QSize(16777215, 60))
+        font4 = QFont()
+        font4.setFamilies([u"Montserrat"])
+        font4.setPointSize(13)
+        font4.setWeight(QFont.Black)
+        font4.setStrikeOut(False)
+        self.btnActualizar.setFont(font4)
+        self.btnActualizar.setStyleSheet(u"background-color: #3b82f6; color: white;")
+        self.btnActualizar.setCheckable(True)
+
+        self.horizontalLayout_2.addWidget(self.btnActualizar)
+
+
         self.verticalLayout_5.addWidget(self.frameLeyenda)
 
 
@@ -156,5 +176,6 @@ class Ui_CommandCenterPage(object):
         self.lblLeyenda1.setText(QCoreApplication.translate("CommandCenterPage", u"En Ruta", None))
         self.lblLeyenda2.setText(QCoreApplication.translate("CommandCenterPage", u"Pausado", None))
         self.lblLeyenda3.setText(QCoreApplication.translate("CommandCenterPage", u"Completado", None))
+        self.btnActualizar.setText(QCoreApplication.translate("CommandCenterPage", u"Actualizar Mapa", None))
     # retranslateUi
 

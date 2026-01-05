@@ -1,12 +1,17 @@
 from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QHeaderView
+from PySide6.QtCore import Signal
 from app.views.VehiculosWidget_ui import Ui_VehiculosWidget
 from app.repositories.vehiculo_repository import VehiculoRepository
 from app.controllers.VehiculoDialogController import VehiculoDialogController
 
 class VehiclesController(QWidget, Ui_VehiculosWidget):
-    def __init__(self, db_connection=None):
+    
+    vehiculo_creado = Signal()
+    
+    def __init__(self, db_connection=None, app_state=None):
         super().__init__()
         self.setupUi(self)
+        self.app_state = app_state
         
         self.repo = None
         if db_connection:
@@ -21,7 +26,9 @@ class VehiclesController(QWidget, Ui_VehiculosWidget):
         self.btnNuevoVehiculo.clicked.connect(self.crear_vehiculo)
         self.btnBorrar.clicked.connect(self.borrar_seleccionado)
         self.btnEditar.clicked.connect(self.editar_seleccionado)
-    
+        
+        
+        
     def configurar_tabla(self):
         self.tablaVehiculos.horizontalHeader().setStretchLastSection(False)
         
@@ -94,5 +101,6 @@ class VehiclesController(QWidget, Ui_VehiculosWidget):
             nuevo = dialog.datos_vehiculo
             if self.repo.guardar_nuevo_vehiculo(nuevo):
                 self.cargar_tabla()
+                self.vehiculo_creado.emit()
             else:
                 QMessageBox.critical(self, "Error", "Fallo al guardar.")

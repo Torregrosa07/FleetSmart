@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>IncidenciasWidget</class>
+ <widget class="QWidget" name="IncidenciasWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1222</width>
+    <height>726</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>10</number>
+   </property>
+   <property name="topMargin">
+    <number>9</number>
+   </property>
+   <item>
+    <widget class="QComboBox" name="cbFiltroEstado">
+     <property name="font">
+      <font>
+       <family>Montserrat</family>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <item>
+      <property name="text">
+       <string>Todas</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Pendiente</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>En Proceso</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Resuelta</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item>
+    <widget class="QTableWidget" name="tablaIncidencias">
+     <property name="font">
+      <font>
+       <family>Montserrat</family>
+      </font>
+     </property>
+     <property name="editTriggers">
+      <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
+     </property>
+     <property name="alternatingRowColors">
+      <bool>true</bool>
+     </property>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::SelectionMode::SingleSelection</enum>
+     </property>
+     <property name="selectionBehavior">
+      <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
+     </property>
+     <property name="columnCount">
+      <number>7</number>
+     </property>
+     <column>
+      <property name="text">
+       <string>Fecha</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Hora</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Vehículo</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Tipo</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Estado</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Descripción</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Conductor</string>
+      </property>
+     </column>
+    </widget>
+   </item>
+   <item>
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="0" column="0">
+      <widget class="QPushButton" name="btnRecargar">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>60</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>Montserrat</family>
+         <pointsize>13</pointsize>
+         <strikeout>false</strikeout>
+         <fontweight>Black</fontweight>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: #3b82f6; color: white;</string>
+       </property>
+       <property name="text">
+        <string>Recargar</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QPushButton" name="btnNuevaIncidencia">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>60</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>Montserrat</family>
+         <pointsize>13</pointsize>
+         <strikeout>false</strikeout>
+         <fontweight>Black</fontweight>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: #3b82f6; color: white;</string>
+       </property>
+       <property name="text">
+        <string>+ Nueva Incidencia</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QPushButton" name="btnCambiarEstado">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>60</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>Montserrat</family>
+         <pointsize>13</pointsize>
+         <strikeout>false</strikeout>
+         <fontweight>Black</fontweight>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: #3b82f6; color: white;</string>
+       </property>
+       <property name="text">
+        <string>Cambiar Estado</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QPushButton" name="btnEliminar">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>60</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>Montserrat</family>
+         <pointsize>13</pointsize>
+         <strikeout>false</strikeout>
+         <fontweight>Black</fontweight>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: #3b82f6; color: white;</string>
+       </property>
+       <property name="text">
+        <string>Eliminar</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

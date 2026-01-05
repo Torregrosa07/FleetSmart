@@ -10,8 +10,6 @@ QWidget {
 /* Paneles (Blancos para resaltar sobre el fondo gris) */
 QFrame, QGroupBox {
     background-color: #ffffff;
-    border: 1px solid #e0e0e0; /* Borde sutil */
-    border-radius: 8px;
 }
 
 /* Etiquetas */
@@ -24,8 +22,6 @@ QLabel {
 QPushButton {
     background-color: #3b82f6;
     color: white;
-    border: none;
-    border-radius: 5px;
     padding: 8px;
     font-weight: bold;
 }
@@ -39,8 +35,6 @@ QPushButton:pressed {
 /* --- INPUTS --- */
 QLineEdit, QTextEdit {
     background-color: #ffffff;
-    border: 1px solid #ccc;
-    border-radius: 4px;
     color: #333;
     padding: 4px;
 }
@@ -48,9 +42,7 @@ QLineEdit, QTextEdit {
 /* --- TABLAS --- */
 QTableWidget {
     background-color: #ffffff;
-    gridline-color: #e5e7eb;
     color: #333;
-    border: none;
 }
 QTableWidget::item:selected {
     background-color: #3b82f6;
@@ -59,7 +51,6 @@ QTableWidget::item:selected {
 QHeaderView::section {
     background-color: #e5e7eb;
     color: #333;
-    border: none;
     padding: 4px;
     font-weight: bold;
 }

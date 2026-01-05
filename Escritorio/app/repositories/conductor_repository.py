@@ -6,18 +6,26 @@ class ConductorRepository:
         self.dao = ConductorDAO(db_connection)
 
     def guardar_nuevo_conductor(self, conductor_obj):
+        """
+        Guarda un nuevo conductor en Firebase.
+        """
         try:
-            # 1. Convertimos el objeto Modelo a Diccionario
+            # Convertir el objeto a diccionario
             datos = conductor_obj.to_dict()
             
-            # 2. Usamos el DAO para enviar los datos
-            resultado = self.dao.insertar(datos)
+            # Si tiene UID de Auth, usar ese ID específico
+            if conductor_obj.id_conductor:
+                self.dao.insertar_con_id(conductor_obj.id_conductor, datos)
+                print(f"✅ Conductor guardado con UID: {conductor_obj.id_conductor}")
+            else:
+                # Si no tiene UID, generar uno automático (modo legacy)
+                resultado = self.dao.insertar(datos)
+                print(f"✅ Conductor guardado con ID auto-generado: {resultado['name']}")
             
-            print(f"Éxito: Conductor guardado con ID: {resultado['name']}")
             return True
         except Exception as e:
-            print(f"Error al guardar: {e}") 
-            
+            print(f"❌ Error al guardar conductor: {e}") 
+            return False
             
     def obtener_todos(self):
         """Devuelve una lista de objetos Conductor"""
@@ -38,6 +46,21 @@ class ConductorRepository:
             
         return lista
     
+    def obtener_por_id(self, id_conductor):
+        """
+        Obtiene un conductor específico por su ID.
+        """
+        try:
+            respuesta = self.dao.leer_por_id(id_conductor)
+            
+            if respuesta.val():
+                return Conductor.from_dict(id_conductor, respuesta.val())
+            else:
+                return None
+                
+        except Exception as e:
+            print(f"Error al obtener conductor por ID: {e}")
+            return None
     
     def eliminar_conductor(self, id_conductor):
         try:
@@ -46,7 +69,6 @@ class ConductorRepository:
         except Exception as e:
             print(f"Error al eliminar: {e}")
             return False
-
 
     def actualizar_conductor(self, conductor_obj):
         try:

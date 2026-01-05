@@ -115,7 +115,7 @@
                 <bool>true</bool>
                </property>
                <property name="flat">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>
@@ -154,7 +154,7 @@
                 <bool>true</bool>
                </property>
                <property name="flat">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>
@@ -193,7 +193,7 @@
                 <bool>true</bool>
                </property>
                <property name="flat">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>
@@ -232,7 +232,7 @@
                 <bool>true</bool>
                </property>
                <property name="flat">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>
@@ -271,7 +271,7 @@
                 <bool>true</bool>
                </property>
                <property name="flat">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>
@@ -310,7 +310,7 @@
                 <bool>true</bool>
                </property>
                <property name="flat">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>
@@ -376,36 +376,6 @@
              <property name="rightMargin">
               <number>8</number>
              </property>
-             <item alignment="Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignTop">
-              <widget class="QPushButton" name="btnMenuToggle">
-               <property name="minimumSize">
-                <size>
-                 <width>50</width>
-                 <height>50</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>50</width>
-                 <height>50</height>
-                </size>
-               </property>
-               <property name="font">
-                <font>
-                 <pointsize>14</pointsize>
-                </font>
-               </property>
-               <property name="layoutDirection">
-                <enum>Qt::LayoutDirection::LeftToRight</enum>
-               </property>
-               <property name="text">
-                <string>☰</string>
-               </property>
-               <property name="flat">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
              <item>
               <widget class="QLabel" name="lblPageTitle">
                <property name="font">

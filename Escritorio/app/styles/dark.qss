@@ -10,8 +10,6 @@ QWidget {
 /* Paneles, Sidebars y Marcos (Un tono más oscuro para contraste) */
 QFrame, QGroupBox {
     background-color: #21252b; 
-    border: none;
-    border-radius: 8px;
 }
 
 /* Títulos y Etiquetas */
@@ -24,8 +22,6 @@ QLabel {
 QPushButton {
     background-color: #3b82f6;
     color: white;
-    border: none;
-    border-radius: 5px;
     padding: 8px;
     font-weight: bold;
 }
@@ -43,8 +39,6 @@ QPushButton:disabled {
 /* --- INPUTS (Cajas de texto) --- */
 QLineEdit, QTextEdit, QPlainTextEdit {
     background-color: #3b4048; /* Más claro que el fondo */
-    border: 1px solid #181a1f;
-    border-radius: 4px;
     color: white;
     padding: 4px;
 }
@@ -52,8 +46,6 @@ QLineEdit, QTextEdit, QPlainTextEdit {
 /* --- COMBOS --- */
 QComboBox {
     background-color: #3b4048;
-    border: 1px solid #181a1f;
-    border-radius: 4px;
     color: white;
     padding: 4px;
 }
@@ -61,8 +53,6 @@ QComboBox {
 /* --- TABLAS --- */
 QTableWidget {
     background-color: #21252b;
-    gridline-color: #3b4048;
-    border: none;
     color: #d9dce0;
 }
 QTableWidget::item {
@@ -76,7 +66,6 @@ QTableWidget::item:selected {
 QHeaderView::section {
     background-color: #282c34;
     color: white;
-    border: none;
     padding: 4px;
     font-weight: bold;
 }

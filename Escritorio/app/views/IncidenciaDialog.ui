@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>IncidenciaDialog</class>
+ <widget class="QDialog" name="IncidenciaDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>436</width>
+    <height>404</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QFormLayout" name="formLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="lblVehiculo">
+       <property name="font">
+        <font>
+         <family>Montserrat</family>
+         <pointsize>12</pointsize>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Vehículo: </string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignmentFlag::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QComboBox" name="cbVehiculo">
+       <property name="font">
+        <font>
+         <family>Montserrat</family>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="lblTipo">
+       <property name="font">
+        <font>
+         <family>Montserrat</family>
+         <pointsize>12</pointsize>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Tipo:</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignmentFlag::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QComboBox" name="cbTipo">
+       <property name="font">
+        <font>
+         <family>Montserrat</family>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <item>
+        <property name="text">
+         <string>Avería</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Accidente</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Mantenimiento</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Otro</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="lblFecha">
+       <property name="font">
+        <font>
+         <family>Montserrat</family>
+         <pointsize>12</pointsize>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Fecha: </string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignmentFlag::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QDateEdit" name="dtFecha">
+       <property name="font">
+        <font>
+         <family>Montserrat</family>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
+       <property name="displayFormat">
+        <string>dd/MM/yyyy</string>
+       </property>
+       <property name="calendarPopup">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="lblHora">
+       <property name="font">
+        <font>
+         <family>Montserrat</family>
+         <pointsize>12</pointsize>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Hora: </string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignmentFlag::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QDateTimeEdit" name="teHora">
+       <property name="font">
+        <font>
+         <family>Montserrat</family>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
+       <property name="displayFormat">
+        <string>HH:mm</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="lblEstado">
+       <property name="font">
+        <font>
+         <family>Montserrat</family>
+         <pointsize>12</pointsize>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Estado: </string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignmentFlag::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QComboBox" name="cbEstado">
+       <property name="font">
+        <font>
+         <family>Montserrat</family>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <item>
+        <property name="text">
+         <string>Pendiente</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>En Proceso</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Resuelta</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="lblConductor">
+       <property name="font">
+        <font>
+         <family>Montserrat</family>
+         <pointsize>12</pointsize>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Conductor:</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignmentFlag::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <widget class="QComboBox" name="cbConductor">
+       <property name="font">
+        <font>
+         <family>Montserrat</family>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QTextEdit" name="txtDescripcion">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>100</height>
+      </size>
+     </property>
+     <property name="font">
+      <font>
+       <family>Montserrat</family>
+       <pointsize>11</pointsize>
+      </font>
+     </property>
+     <property name="placeholderText">
+      <string>Escribe aquí una descripción de la avería</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QPushButton" name="btnGuardarIncidencia">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>60</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>Montserrat</family>
+         <pointsize>13</pointsize>
+         <strikeout>false</strikeout>
+         <fontweight>Black</fontweight>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: #3b82f6; color: white;</string>
+       </property>
+       <property name="text">
+        <string>Guardar Incidencia</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnCancelar">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>60</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>Montserrat</family>
+         <pointsize>13</pointsize>
+         <strikeout>false</strikeout>
+         <fontweight>Black</fontweight>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: #3b82f6; color: white;</string>
+       </property>
+       <property name="text">
+        <string>Cancelar</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

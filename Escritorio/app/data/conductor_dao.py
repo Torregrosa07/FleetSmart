@@ -4,17 +4,21 @@ class ConductorDAO:
         self.collection_name = "conductores"
 
     def insertar(self, conductor_dict):
-        """Envía el diccionario a Firebase y devuelve el resultado"""
         return self.db.child(self.collection_name).push(conductor_dict)
     
+    def insertar_con_id(self, id_conductor, conductor_dict):
+        
+        return self.db.child(self.collection_name).child(id_conductor).set(conductor_dict)
+    
     def leer_todos(self):
-        """Descarga todos los conductores de la nube"""
         return self.db.child(self.collection_name).get()
     
+    def leer_por_id(self, id_conductor):
+        
+        return self.db.child(self.collection_name).child(id_conductor).get()
+    
     def eliminar(self, id_conductor):
-        """Borra el nodo del conductor"""
         return self.db.child(self.collection_name).child(id_conductor).remove()
 
     def actualizar(self, id_conductor, datos_dict):
-        """Actualiza los datos de un conductor existente"""
         return self.db.child(self.collection_name).child(id_conductor).update(datos_dict)

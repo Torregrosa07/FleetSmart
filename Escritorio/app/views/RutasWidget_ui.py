@@ -16,9 +16,10 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtWidgets import (QApplication, QFormLayout, QGroupBox, QHBoxLayout,
-    QLabel, QLineEdit, QListWidget, QListWidgetItem,
-    QPushButton, QSizePolicy, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QApplication, QDateTimeEdit, QFormLayout, QGroupBox,
+    QHBoxLayout, QLabel, QLineEdit, QListWidget,
+    QListWidgetItem, QPushButton, QSizePolicy, QTimeEdit,
+    QVBoxLayout, QWidget)
 
 class Ui_RutasWidget(object):
     def setupUi(self, RutasWidget):
@@ -38,50 +39,103 @@ class Ui_RutasWidget(object):
         self.groupBox.setFont(font)
         self.verticalLayout = QVBoxLayout(self.groupBox)
         self.verticalLayout.setObjectName(u"verticalLayout")
-        self.formLayout_2 = QFormLayout()
-        self.formLayout_2.setObjectName(u"formLayout_2")
+        self.formLayout = QFormLayout()
+        self.formLayout.setObjectName(u"formLayout")
         self.lblNombreRuta = QLabel(self.groupBox)
         self.lblNombreRuta.setObjectName(u"lblNombreRuta")
         font1 = QFont()
         font1.setFamilies([u"Montserrat"])
-        font1.setPointSize(16)
+        font1.setPointSize(12)
         font1.setBold(True)
         self.lblNombreRuta.setFont(font1)
         self.lblNombreRuta.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.formLayout_2.setWidget(0, QFormLayout.ItemRole.LabelRole, self.lblNombreRuta)
+        self.formLayout.setWidget(0, QFormLayout.ItemRole.LabelRole, self.lblNombreRuta)
 
         self.leNombreRuta = QLineEdit(self.groupBox)
         self.leNombreRuta.setObjectName(u"leNombreRuta")
         self.leNombreRuta.setFont(font)
 
-        self.formLayout_2.setWidget(0, QFormLayout.ItemRole.FieldRole, self.leNombreRuta)
+        self.formLayout.setWidget(0, QFormLayout.ItemRole.FieldRole, self.leNombreRuta)
 
         self.lblOrigen = QLabel(self.groupBox)
         self.lblOrigen.setObjectName(u"lblOrigen")
         self.lblOrigen.setFont(font1)
         self.lblOrigen.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.formLayout_2.setWidget(1, QFormLayout.ItemRole.LabelRole, self.lblOrigen)
+        self.formLayout.setWidget(1, QFormLayout.ItemRole.LabelRole, self.lblOrigen)
 
         self.leOrigen = QLineEdit(self.groupBox)
         self.leOrigen.setObjectName(u"leOrigen")
         self.leOrigen.setFont(font)
 
-        self.formLayout_2.setWidget(1, QFormLayout.ItemRole.FieldRole, self.leOrigen)
+        self.formLayout.setWidget(1, QFormLayout.ItemRole.FieldRole, self.leOrigen)
+
+        self.lblFecha = QLabel(self.groupBox)
+        self.lblFecha.setObjectName(u"lblFecha")
+        self.lblFecha.setFont(font1)
+        self.lblFecha.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.formLayout.setWidget(2, QFormLayout.ItemRole.LabelRole, self.lblFecha)
+
+        self.dtFecha = QDateTimeEdit(self.groupBox)
+        self.dtFecha.setObjectName(u"dtFecha")
+        font2 = QFont()
+        font2.setFamilies([u"Montserrat"])
+        font2.setPointSize(11)
+        self.dtFecha.setFont(font2)
+        self.dtFecha.setCalendarPopup(True)
+
+        self.formLayout.setWidget(2, QFormLayout.ItemRole.FieldRole, self.dtFecha)
+
+        self.lblHoraInicio = QLabel(self.groupBox)
+        self.lblHoraInicio.setObjectName(u"lblHoraInicio")
+        self.lblHoraInicio.setFont(font1)
+        self.lblHoraInicio.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.formLayout.setWidget(3, QFormLayout.ItemRole.LabelRole, self.lblHoraInicio)
+
+        self.teHoraInicio = QTimeEdit(self.groupBox)
+        self.teHoraInicio.setObjectName(u"teHoraInicio")
+        self.teHoraInicio.setTime(QTime(8, 0, 0))
+
+        self.formLayout.setWidget(3, QFormLayout.ItemRole.FieldRole, self.teHoraInicio)
+
+        self.lblHoraFin = QLabel(self.groupBox)
+        self.lblHoraFin.setObjectName(u"lblHoraFin")
+        self.lblHoraFin.setFont(font1)
+        self.lblHoraFin.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.formLayout.setWidget(4, QFormLayout.ItemRole.LabelRole, self.lblHoraFin)
+
+        self.teHoraFin = QTimeEdit(self.groupBox)
+        self.teHoraFin.setObjectName(u"teHoraFin")
+        self.teHoraFin.setTime(QTime(17, 0, 0))
+
+        self.formLayout.setWidget(4, QFormLayout.ItemRole.FieldRole, self.teHoraFin)
+
+        self.lblDestino = QLabel(self.groupBox)
+        self.lblDestino.setObjectName(u"lblDestino")
+        self.lblDestino.setFont(font1)
+        self.lblDestino.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.formLayout.setWidget(5, QFormLayout.ItemRole.LabelRole, self.lblDestino)
+
+        self.leDestino = QLineEdit(self.groupBox)
+        self.leDestino.setObjectName(u"leDestino")
+        self.leDestino.setFont(font)
+        self.leDestino.setReadOnly(True)
+
+        self.formLayout.setWidget(5, QFormLayout.ItemRole.FieldRole, self.leDestino)
 
 
-        self.verticalLayout.addLayout(self.formLayout_2)
+        self.verticalLayout.addLayout(self.formLayout)
 
         self.horizontalLayout_5 = QHBoxLayout()
         self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
         self.lblConductor_2 = QLabel(self.groupBox)
         self.lblConductor_2.setObjectName(u"lblConductor_2")
-        font2 = QFont()
-        font2.setFamilies([u"Montserrat"])
-        font2.setPointSize(12)
-        font2.setBold(True)
-        self.lblConductor_2.setFont(font2)
+        self.lblConductor_2.setFont(font1)
         self.lblConductor_2.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.horizontalLayout_5.addWidget(self.lblConductor_2)
@@ -177,6 +231,14 @@ class Ui_RutasWidget(object):
         self.groupBox.setTitle(QCoreApplication.translate("RutasWidget", u"Nueva Ruta", None))
         self.lblNombreRuta.setText(QCoreApplication.translate("RutasWidget", u"Nombre:", None))
         self.lblOrigen.setText(QCoreApplication.translate("RutasWidget", u"Origen:  ", None))
+        self.lblFecha.setText(QCoreApplication.translate("RutasWidget", u"Fecha: ", None))
+        self.dtFecha.setDisplayFormat(QCoreApplication.translate("RutasWidget", u"dd/MM/yyyy", None))
+        self.lblHoraInicio.setText(QCoreApplication.translate("RutasWidget", u"Hora Inicio:", None))
+        self.teHoraInicio.setDisplayFormat(QCoreApplication.translate("RutasWidget", u"HH:mm", None))
+        self.lblHoraFin.setText(QCoreApplication.translate("RutasWidget", u"Hora Fin:", None))
+        self.teHoraFin.setDisplayFormat(QCoreApplication.translate("RutasWidget", u"HH:mm", None))
+        self.lblDestino.setText(QCoreApplication.translate("RutasWidget", u"Destino: ", None))
+        self.leDestino.setPlaceholderText(QCoreApplication.translate("RutasWidget", u"Se autocompleta con la ultima parada", None))
         self.lblConductor_2.setText(QCoreApplication.translate("RutasWidget", u"Nueva Parada: ", None))
         self.btnAgregarParada.setText(QCoreApplication.translate("RutasWidget", u"+", None))
         self.btnEliminarParada.setText(QCoreApplication.translate("RutasWidget", u"-", None))

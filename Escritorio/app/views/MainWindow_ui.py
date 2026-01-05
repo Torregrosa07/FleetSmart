@@ -73,7 +73,7 @@ class Ui_MainWindow(object):
         self.btnCommandCenter.setFont(font1)
         self.btnCommandCenter.setStyleSheet(u"")
         self.btnCommandCenter.setCheckable(True)
-        self.btnCommandCenter.setFlat(True)
+        self.btnCommandCenter.setFlat(False)
 
         self.verticalLayout_3.addWidget(self.btnCommandCenter)
 
@@ -85,7 +85,7 @@ class Ui_MainWindow(object):
         self.btnDrivers.setFont(font1)
         self.btnDrivers.setStyleSheet(u"")
         self.btnDrivers.setCheckable(True)
-        self.btnDrivers.setFlat(True)
+        self.btnDrivers.setFlat(False)
 
         self.verticalLayout_3.addWidget(self.btnDrivers)
 
@@ -97,7 +97,7 @@ class Ui_MainWindow(object):
         self.btnVehicles.setFont(font1)
         self.btnVehicles.setStyleSheet(u"")
         self.btnVehicles.setCheckable(True)
-        self.btnVehicles.setFlat(True)
+        self.btnVehicles.setFlat(False)
 
         self.verticalLayout_3.addWidget(self.btnVehicles)
 
@@ -109,7 +109,7 @@ class Ui_MainWindow(object):
         self.btnRoutes.setFont(font1)
         self.btnRoutes.setStyleSheet(u"")
         self.btnRoutes.setCheckable(True)
-        self.btnRoutes.setFlat(True)
+        self.btnRoutes.setFlat(False)
 
         self.verticalLayout_3.addWidget(self.btnRoutes)
 
@@ -121,7 +121,7 @@ class Ui_MainWindow(object):
         self.btnAssign.setFont(font1)
         self.btnAssign.setStyleSheet(u"")
         self.btnAssign.setCheckable(True)
-        self.btnAssign.setFlat(True)
+        self.btnAssign.setFlat(False)
 
         self.verticalLayout_3.addWidget(self.btnAssign)
 
@@ -133,7 +133,7 @@ class Ui_MainWindow(object):
         self.btnIncidents.setFont(font1)
         self.btnIncidents.setStyleSheet(u"")
         self.btnIncidents.setCheckable(True)
-        self.btnIncidents.setFlat(True)
+        self.btnIncidents.setFlat(False)
 
         self.verticalLayout_3.addWidget(self.btnIncidents)
 
@@ -170,25 +170,13 @@ class Ui_MainWindow(object):
         self.horizontalLayout_2.setSpacing(9)
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
         self.horizontalLayout_2.setContentsMargins(-1, -1, 8, -1)
-        self.btnMenuToggle = QPushButton(self.frameTopBar)
-        self.btnMenuToggle.setObjectName(u"btnMenuToggle")
-        self.btnMenuToggle.setMinimumSize(QSize(50, 50))
-        self.btnMenuToggle.setMaximumSize(QSize(50, 50))
-        font3 = QFont()
-        font3.setPointSize(14)
-        self.btnMenuToggle.setFont(font3)
-        self.btnMenuToggle.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
-        self.btnMenuToggle.setFlat(True)
-
-        self.horizontalLayout_2.addWidget(self.btnMenuToggle, 0, Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignTop)
-
         self.lblPageTitle = QLabel(self.frameTopBar)
         self.lblPageTitle.setObjectName(u"lblPageTitle")
-        font4 = QFont()
-        font4.setFamilies([u"Montserrat"])
-        font4.setPointSize(14)
-        font4.setBold(True)
-        self.lblPageTitle.setFont(font4)
+        font3 = QFont()
+        font3.setFamilies([u"Montserrat"])
+        font3.setPointSize(14)
+        font3.setBold(True)
+        self.lblPageTitle.setFont(font3)
 
         self.horizontalLayout_2.addWidget(self.lblPageTitle)
 
@@ -198,10 +186,10 @@ class Ui_MainWindow(object):
 
         self.lblDate = QLabel(self.frameTopBar)
         self.lblDate.setObjectName(u"lblDate")
-        font5 = QFont()
-        font5.setFamilies([u"Montserrat"])
-        font5.setPointSize(14)
-        self.lblDate.setFont(font5)
+        font4 = QFont()
+        font4.setFamilies([u"Montserrat"])
+        font4.setPointSize(14)
+        self.lblDate.setFont(font4)
 
         self.horizontalLayout_2.addWidget(self.lblDate)
 
@@ -248,7 +236,6 @@ class Ui_MainWindow(object):
         self.btnAssign.setText(QCoreApplication.translate("MainWindow", u"Asignar Rutas", None))
         self.btnIncidents.setText(QCoreApplication.translate("MainWindow", u"Incidencias", None))
         self.btnSettings.setText(QCoreApplication.translate("MainWindow", u"Ajustes", None))
-        self.btnMenuToggle.setText(QCoreApplication.translate("MainWindow", u"\u2630", None))
         self.lblPageTitle.setText(QCoreApplication.translate("MainWindow", u"Centro de Mando", None))
         self.lblDate.setText(QCoreApplication.translate("MainWindow", u"Fecha", None))
     # retranslateUi

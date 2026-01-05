@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "602477520072",
+    "firebase_url": "https://fleetsmart-1-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "fleetsmart-1",
+    "storage_bucket": "fleetsmart-1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:602477520072:android:835c316c37f313e8a371fd",
+        "android_client_info": {
+          "package_name": "com.fleetsmart.conductor"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB_i9qtKLYSWWcwrR7iB37Uecigl3T0D2U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

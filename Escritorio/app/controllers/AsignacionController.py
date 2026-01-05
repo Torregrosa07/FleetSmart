@@ -3,18 +3,18 @@ from PySide6.QtCore import Qt, QDate, QDateTime
 
 from app.views.AsignacionWidget_ui import Ui_AsignacionWidget
 from app.models.asignacion import Asignacion
-
-# Repositorios
 from app.repositories.asignacion_repository import AsignacionRepository
 from app.repositories.ruta_repository import RutaRepository
 from app.repositories.conductor_repository import ConductorRepository
 from app.repositories.vehiculo_repository import VehiculoRepository
 
 class AsignacionController(QWidget, Ui_AsignacionWidget):
-    def __init__(self, db_connection, parent=None):
+    def __init__(self, db_connection, parent=None, app_state=None):
         super().__init__(parent)
         self.setupUi(self)
         self.db = db_connection
+        self.app_state = app_state
+        
         
         # 1. Inicializar Repositorios
         self.repo_asignacion = AsignacionRepository(self.db)
@@ -41,6 +41,8 @@ class AsignacionController(QWidget, Ui_AsignacionWidget):
 
         # 5. Carga inicial
         self.cargar_datos()
+        
+
 
     def configurar_tabla(self):
         """Estilo de la tabla"""
@@ -142,7 +144,48 @@ class AsignacionController(QWidget, Ui_AsignacionWidget):
         id_veh = self.cbVehiculo.currentData()
         texto_veh = self.cbVehiculo.currentText()
         matricula = texto_veh.split("-")[-1].strip() if "-" in texto_veh else texto_veh
+        
+        
+        
+        if self.repo_asignacion.ruta_tiene_asignacion(id_ruta):
+            QMessageBox.warning(
+                self,
+                "Ruta Ya Asignada",
+                f"La ruta '{nombre_ruta}' ya está asignada.\n\n"
+                "Primero elimina la asignación existente."
+            )
+            return
+        
+        
+        tiene_ruta, ruta_actual = self.repo_asignacion.conductor_tiene_asignacion_activa(id_cond)
+        if tiene_ruta:
+            respuesta = QMessageBox.question(
+                self,
+                "Conductor Ya Asignado",
+                f"El conductor '{nombre_cond}' ya tiene asignada la ruta:\n"
+                f"'{ruta_actual}'\n\n"
+                "¿Quieres reasignarlo a esta nueva ruta?\n"
+                "(La asignación anterior se eliminará)",
+                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.No
+            )
+            
+            if respuesta == QMessageBox.No:
+                return
+            
+            
+        tiene_ruta, ruta_actual = self.repo_asignacion.vehiculo_tiene_asignacion_activa(id_veh)
+        if tiene_ruta:
+            QMessageBox.warning(
+                self,
+                "Vehículo Ya Asignado",
+                f"El vehículo {matricula} ya está asignado a:\n"
+                f"'{ruta_actual}'\n\n"
+                "Selecciona otro vehículo o elimina la asignación existente."
+            )
+            return
 
+            
         # 3. Crear Objeto Asignación
         nueva_asignacion = Asignacion(
             id_ruta=id_ruta,
@@ -161,6 +204,9 @@ class AsignacionController(QWidget, Ui_AsignacionWidget):
             self.cargar_datos() 
         else:
             QMessageBox.critical(self, "Error", "No se pudo guardar la asignación.")
+            
+            
+            
 
     def borrar_asignacion(self):
         """Elimina la asignación de la ruta seleccionada en la tabla"""
