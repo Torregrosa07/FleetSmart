@@ -48,6 +48,7 @@ TRANSLATIONS = {
         "model": "Modelo",
         "year": "Año",
         "status": "Estado",
+        "ITV": "Próxima ITV",
         
         # Conductores
         "dni": "DNI",
@@ -121,6 +122,7 @@ TRANSLATIONS = {
         "model": "Model",
         "year": "Year",
         "status": "Status",
+        "ITV": "Next Inspection",
         
         # Drivers
         "dni": "ID",

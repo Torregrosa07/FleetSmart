@@ -2,6 +2,7 @@ from PySide6.QtWidgets import QMainWindow
 from PySide6.QtCore import QDate, QLocale
 from app.views.MainWindow_ui import Ui_MainWindow
 from app.controllers.CommandCenterController import CommandCenterController
+from app.services.language_service import LanguageService
 from app.controllers.VehiclesController import VehiclesController
 from app.controllers.ConductoresController import ConductoresController
 from app.controllers.SettingsController import SettingsController
@@ -27,7 +28,7 @@ class MainWindowController(QMainWindow, Ui_MainWindow):
 
         # 2. Inicializar Vistas Hijas
         self.vista_mapa = CommandCenterController(coords_iniciales=self.app_state.get("empresa_coords"))
-        self.vista_vehiculos = VehiclesController(self.db)
+        self.vista_vehiculos = VehiclesController(self.db, self.app_state)
         self.vista_conductores = ConductoresController(self.db)
         self.vista_rutas = RutasController(self.db, self.app_state)
         self.vista_asignaciones = AsignacionController(self.db)
@@ -58,6 +59,48 @@ class MainWindowController(QMainWindow, Ui_MainWindow):
         self.actualizar_fecha()
         
         self.ir_a_mapa()
+        
+        self.actualizar_textos()
+        
+        
+    def actualizar_textos(self):
+        """Actualiza los textos de la ventana principal y propaga a las hijas"""
+        idioma = self.app_state.get("language", "Español")
+        
+        # 1. Actualizar textos del Menú Lateral (Main Window)
+        self.btnCommandCenter.setText(LanguageService.get_text("command_center", idioma))
+        self.btnVehicles.setText(LanguageService.get_text("vehicles", idioma))
+        self.btnDrivers.setText(LanguageService.get_text("drivers", idioma))
+        self.btnRoutes.setText(LanguageService.get_text("routes", idioma))
+        self.btnAssign.setText(LanguageService.get_text("assignments", idioma))
+        self.btnIncidents.setText(LanguageService.get_text("incidents", idioma))
+        self.btnSettings.setText(LanguageService.get_text("settings", idioma))
+        
+        idx = self.stackContent.currentIndex()
+        if idx == self.idx_mapa:
+            self.lblPageTitle.setText(LanguageService.get_text("command_center", idioma))
+        elif idx == self.idx_vehiculos:
+            self.lblPageTitle.setText(LanguageService.get_text("vehicles", idioma))
+        # ... etc
+        
+        # 3. PROPAGAR A LAS VISTAS HIJAS
+        # Verificamos si tienen el método 'actualizar_idioma' antes de llamarlo
+        if hasattr(self.vista_vehiculos, 'actualizar_idioma'):
+            self.vista_vehiculos.actualizar_idioma(idioma)
+            
+        if hasattr(self.vista_conductores, 'actualizar_idioma'):
+            self.vista_conductores.actualizar_idioma(idioma)
+            
+        if hasattr(self.vista_rutas, 'actualizar_idioma'):
+            self.vista_rutas.actualizar_idioma(idioma)
+            
+        if hasattr(self.vista_incidencias, 'actualizar_idioma'):
+            self.vista_incidencias.actualizar_idioma(idioma)
+            
+        if hasattr(self.vista_asignaciones, 'actualizar_idioma'):
+            self.vista_asignaciones.actualizar_idioma(idioma)
+            
+            
         
         
     def actualizar_fecha(self):
@@ -127,13 +170,8 @@ class MainWindowController(QMainWindow, Ui_MainWindow):
             # 3. Aplicamos cambios en el MAPA
             if nuevos.get("empresa_coords"):
                 self.vista_mapa.actualizar_ubicacion_empresa(nuevos["empresa_coords"])
-                
             
-            if hasattr(self.vista_vehiculos, 'actualizar_idioma'):
-                self.vista_vehiculos.actualizar_idioma()
-            
-            if hasattr(self.vista_conductores, 'actualizar_idioma'):
-                self.vista_conductores.actualizar_idioma()
+            self.actualizar_textos()
                 
                 
     def closeEvent(self, event):

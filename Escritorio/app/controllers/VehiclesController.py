@@ -2,6 +2,7 @@ from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QHeaderVie
 from PySide6.QtCore import Signal
 from app.views.VehiculosWidget_ui import Ui_VehiculosWidget
 from app.repositories.vehiculo_repository import VehiculoRepository
+from app.services.language_service import LanguageService
 from app.controllers.VehiculoDialogController import VehiculoDialogController
 
 class VehiclesController(QWidget, Ui_VehiculosWidget):
@@ -26,6 +27,37 @@ class VehiclesController(QWidget, Ui_VehiculosWidget):
         self.btnNuevoVehiculo.clicked.connect(self.crear_vehiculo)
         self.btnBorrar.clicked.connect(self.borrar_seleccionado)
         self.btnEditar.clicked.connect(self.editar_seleccionado)
+        
+        
+    def actualizar_idioma(self, idioma):
+        """Traduce la interfaz de vehículos"""
+        
+        # 1. Traducir etiquetas y botones
+        self.label_4.setText(LanguageService.get_text("vehicles", idioma)) # Título
+        self.btnNuevoVehiculo.setText("+ " + LanguageService.get_text("new", idioma))
+        self.btnEditar.setText(LanguageService.get_text("edit", idioma))
+        self.btnBorrar.setText(LanguageService.get_text("delete", idioma))
+        
+        # 2. Traducir Cabeceras de la Tabla (QTableWidget)
+        headers = [
+            "license_plate", "brand", "model", "status", "year", "ITV" 
+        ]
+        
+        # Mapeo manual de las columnas a las claves de tu diccionario
+        claves_columnas = {
+            0: "license_plate",
+            1: "brand",
+            2: "model",
+            3: "status",
+            4: "year",
+            5: "ITV" # Si no está en diccionario, devolverá "ITV"
+        }
+
+        for col, clave in claves_columnas.items():
+            texto = LanguageService.get_text(clave, idioma)
+            item = self.tablaVehiculos.horizontalHeaderItem(col)
+            if item:
+                item.setText(texto)
         
         
         

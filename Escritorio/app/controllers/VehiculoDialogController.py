@@ -1,14 +1,32 @@
 from PySide6.QtWidgets import QDialog, QMessageBox
 from app.views.VehiculosDialog_ui import Ui_VehiculosDialog
 from app.models.vehiculo import Vehiculo
+from app.services.language_service import LanguageService
 
 class VehiculoDialogController(QDialog, Ui_VehiculosDialog):
-    def __init__(self, parent=None, vehiculo_a_editar=None):
+    def __init__(self, parent=None, vehiculo_a_editar=None, app_state=None):
         super().__init__(parent)
         self.setupUi(self)
-        self.datos_vehiculo = None # Aquí guardaremos el resultado si da a Guardar
+        self.datos_vehiculo = None
+        self.app_state = app_state
 
         self.vehiculo_existente = vehiculo_a_editar
+        
+        idioma = "Español"
+        if parent and hasattr(parent, 'app_state') and parent.app_state:
+             idioma = parent.app_state.get("language", "Español")
+        
+        
+        self.lblMarca.setText(LanguageService.get_text("brand", idioma))
+        self.lblMatricula.setText(LanguageService.get_text("license_plate", idioma))
+        self.lblAno.setText(LanguageService.get_text("year", idioma))
+        self.lblModelo.setText(LanguageService.get_text("model", idioma))
+        self.lblITV.setText(LanguageService.get_text("ITV", idioma))
+        
+        self.btnGuardar.setText(LanguageService.get_text("save", idioma))
+        self.btnCancelar.setText(LanguageService.get_text("cancel", idioma))
+        
+        
         
         if self.vehiculo_existente:
             self.rellenar_campos()
@@ -16,7 +34,7 @@ class VehiculoDialogController(QDialog, Ui_VehiculosDialog):
         
         # Conectar botones
         self.btnGuardar.clicked.connect(self.validar_y_guardar)
-        self.btnCancelar.clicked.connect(self.reject) # Cierra devolviendo "Cancelado"
+        self.btnCancelar.clicked.connect(self.reject) 
 
     def rellenar_campos(self):
         """Rellena el formulario con los datos del coche a editar"""

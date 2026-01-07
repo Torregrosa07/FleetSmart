@@ -39,6 +39,9 @@ class SettingsService:
         else:
             print("No se encontró archivo de configuración, usando valores por defecto.")
 
+
+
+
     def save(self):
         """Guarda la configuración actual en el archivo JSON."""
         try:
