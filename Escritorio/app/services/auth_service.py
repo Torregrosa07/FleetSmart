@@ -7,7 +7,6 @@ class AuthService:
             self.firebase = pyrebase.initialize_app(FIREBASE_CONFIG)
             self.auth = self.firebase.auth()
             self.db = self.firebase.database()
-            print("Firebase inicializado correctamente.")
         except Exception as e:
             print(f"Error al conectar con Firebase: {e}")
 
@@ -80,9 +79,9 @@ class AuthService:
             user = self.auth.create_user_with_email_and_password(email, password)
             uid = user['localId']
             
-            print(f"✅ Cuenta de conductor creada con UID: {uid}")
+            print(f"Cuenta de conductor creada con UID: {uid}")
             return {'uid': uid, 'email': email}
             
         except Exception as e:
-            print(f"❌ Error al crear cuenta de conductor: {e}")
+            print(f"Error al crear cuenta de conductor: {e}")
             raise e
