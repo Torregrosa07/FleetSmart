@@ -49,7 +49,6 @@ class IncidenciasController(QWidget, Ui_IncidenciasWidget):
         # Aplicar filtro actual
         self.aplicar_filtro()
         
-        print(f"{len(self.lista_incidencias)} incidencias cargadas")
     
     def aplicar_filtro(self):
         filtro = self.cbFiltroEstado.currentText()

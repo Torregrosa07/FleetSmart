@@ -175,15 +175,10 @@ class MainWindowController(QMainWindow, Ui_MainWindow):
                 
                 
     def closeEvent(self, event):
-        """
-        Se ejecuta cuando el usuario cierra la ventana principal (X).
-        Aquí cerramos todos los procesos y threads abiertos.
-        """
-        print("Cerrando aplicación...")
+    
         
         # 1. Detener el listener del Mapa
         if hasattr(self, 'vista_mapa'):
-            print("Deteniendo listener del mapa...")
             self.vista_mapa.detener_listener()
             
         # 2. Detener threads de Rutas (si hubiera alguno corriendo)

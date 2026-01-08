@@ -64,7 +64,6 @@ class ConductoresController(QWidget, Ui_ConductoresWidget):
             self.tablaCondcutores.setItem(i, 4, QTableWidgetItem(str(conductor.email)))
             self.tablaCondcutores.setItem(i, 5, QTableWidgetItem(str(conductor.telefono)))
         
-        print(f"{len(self.lista_conductores_actual)} conductores cargados")
     
     def obtener_conductor_seleccionado(self):
         """Devuelve el conductor seleccionado en la tabla"""
@@ -124,7 +123,6 @@ class ConductoresController(QWidget, Ui_ConductoresWidget):
         
         # 5. Crear cuenta en Firebase Auth
         try:
-            print(f"Creando cuenta de Auth para {email}...")
             resultado = self.auth_service.crear_conductor(email, password)
             uid = resultado['uid']
             print(f"Cuenta creada: {uid}")

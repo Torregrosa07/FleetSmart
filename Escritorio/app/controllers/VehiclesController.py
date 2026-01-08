@@ -69,7 +69,6 @@ class VehiclesController(QWidget, Ui_VehiculosWidget):
    
     
     def cargar_tabla(self):
-        print("Descargando lista real de Firebase...")
         
         self.lista_vehiculos_actual = self.repo.obtener_todos()
         

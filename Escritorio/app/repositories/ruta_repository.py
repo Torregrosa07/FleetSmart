@@ -39,7 +39,7 @@ class RutaRepository:
             if snapshot.val():
                 return Ruta.from_dict(snapshot.key(), snapshot.val())
             else:
-                print(f"⚠️ Ruta {id_ruta} no encontrada.")
+                print(f"Ruta {id_ruta} no encontrada.")
                 return None
         except Exception as e:
             print(f"Error buscando ruta por ID: {e}")

@@ -29,7 +29,6 @@ class StyleManager:
                 estilo = f.read()
                 # 3. Aplicar estilo a la aplicación
                 app.setStyleSheet(estilo)
-                print(f"Tema aplicado: {tema}")
         except FileNotFoundError:
             print(f"Error: No se encontró el archivo de estilos en: {ruta_estilo}")
         except Exception as e:

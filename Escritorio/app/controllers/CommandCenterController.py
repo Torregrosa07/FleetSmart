@@ -43,7 +43,6 @@ class CommandCenterController(QWidget, Ui_CommandCenterPage):
         Al cambiar la sede, permitimos que se re-ajuste el zoom una vez.
         """
         if nuevas_coords:
-            print(f"Nueva ubicación de empresa recibida: {nuevas_coords}")
             self.empresa_coords = nuevas_coords
             self.es_primera_carga = True # Permitimos re-centrar una vez
             self.actualizar_mapa()
@@ -54,7 +53,6 @@ class CommandCenterController(QWidget, Ui_CommandCenterPage):
                 self.bridge.ubicacion_actualizada.emit()
             
             self.listener_activo = self.repo.crear_listener(on_cambio)
-            print("Listener GPS iniciado")
         except Exception as e:
             print(f"Error iniciando listener: {e}")
     

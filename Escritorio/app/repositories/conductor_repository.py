@@ -16,15 +16,15 @@ class ConductorRepository:
             # Si tiene UID de Auth, usar ese ID específico
             if conductor_obj.id_conductor:
                 self.dao.insertar_con_id(conductor_obj.id_conductor, datos)
-                print(f"✅ Conductor guardado con UID: {conductor_obj.id_conductor}")
+                print(f"Conductor guardado con UID: {conductor_obj.id_conductor}")
             else:
                 # Si no tiene UID, generar uno automático (modo legacy)
                 resultado = self.dao.insertar(datos)
-                print(f"✅ Conductor guardado con ID auto-generado: {resultado['name']}")
+                print(f"Conductor guardado con ID auto-generado: {resultado['name']}")
             
             return True
         except Exception as e:
-            print(f"❌ Error al guardar conductor: {e}") 
+            print(f"Error al guardar conductor: {e}") 
             return False
             
     def obtener_todos(self):
