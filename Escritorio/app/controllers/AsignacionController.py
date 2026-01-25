@@ -16,30 +16,23 @@ class AsignacionController(QWidget, Ui_AsignacionWidget):
         self.app_state = app_state
         
         
-        # 1. Inicializar Repositorios
         self.repo_asignacion = AsignacionRepository(self.db)
         self.repo_rutas = RutaRepository(self.db)
         self.repo_conductores = ConductorRepository(self.db)
         self.repo_vehiculos = VehiculoRepository(self.db)
 
-        # 2. Configuración UI
         self.dtInicio.setDateTime(QDateTime.currentDateTime())
         self.configurar_tabla()
 
-        # 3. Conexiones
         self.btnConfirmar.clicked.connect(self.registrar_asignacion)
         
-        # AQUI ESTÁ EL CAMBIO IMPORTANTE: Conectamos el botón con su nombre real
         self.btnEliminarAsignacion.clicked.connect(self.borrar_asignacion)
         
-        # Magia: Al clicar en la tabla, se selecciona en el combo
         self.tableWidget.cellClicked.connect(self.seleccionar_ruta_de_tabla)
         
-        # 4. Variables de memoria (Vitales para saber qué borrar)
         self.rutas_en_tabla = [] 
         self.dic_asignaciones = {}
 
-        # 5. Carga inicial
         self.cargar_datos()
         
 
