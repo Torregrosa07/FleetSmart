@@ -11,6 +11,10 @@ class VehiculoDAO:
         """Descarga todos los vehículos de la nube"""
         return self.db.child(self.collection_name).get()
     
+    def leer_uno(self, id_vehiculo):
+        """Obtiene un vehículo específico por su ID"""
+        return self.db.child(self.collection_name).child(id_vehiculo).get().val()
+    
     def eliminar(self, id_vehiculo):
         """Borra el nodo del vehículo"""
         return self.db.child(self.collection_name).child(id_vehiculo).remove()

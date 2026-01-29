@@ -13,10 +13,14 @@ class VehiculoRepository:
             # 2. Usamos el DAO para enviar los datos
             resultado = self.dao.insertar(datos)
             
+            # 3. Asignar el ID generado al objeto para poder usarlo inmediatamente
+            vehiculo_obj.id_vehiculo = resultado['name']
+            
             print(f"Éxito: Vehículo guardado con ID: {resultado['name']}")
             return True
         except Exception as e:
             print(f"Error al guardar: {e}") 
+            return False
             
             
     def obtener_todos(self):
@@ -28,7 +32,7 @@ class VehiculoRepository:
             if respuesta.each():
                 for item in respuesta.each():
                     id_firebase = item.key() 
-                    datos = item.val() # el diccionario con matrícula, etc.
+                    datos = item.val()
                     
                     vehiculo = Vehiculo.from_dict(id_firebase, datos)
                     lista.append(vehiculo)
@@ -37,6 +41,18 @@ class VehiculoRepository:
             print(f"Error al obtener datos (puede que esté vacía): {e}")
             
         return lista
+    
+    
+    def obtener_por_id(self, id_vehiculo):
+        """Obtiene un vehículo específico por su ID"""
+        try:
+            respuesta = self.dao.leer_uno(id_vehiculo)
+            if respuesta:
+                return Vehiculo.from_dict(id_vehiculo, respuesta)
+            return None
+        except Exception as e:
+            print(f"Error al obtener vehículo por ID: {e}")
+            return None
     
     
     def eliminar_vehiculo(self, id_vehiculo):

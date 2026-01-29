@@ -112,16 +112,50 @@ class MainWindowController(QMainWindow, Ui_MainWindow):
     def conectar_senales_vistas(self):
         """Conecta señales entre las diferentes vistas para sincronización"""
         
-        # Cuando se crea una ruta:  Actualizar combo en asignaciones
+        # ========== SEÑALES DE RUTAS ==========
+        # Cuando se crea una ruta: Actualizar combo en asignaciones
         self.vista_rutas.ruta_creada.connect(self.vista_asignaciones.cargar_combos)
         
-        # Cuando se crea un conductor:  Actualizar combo en asignaciones
+        # ========== SEÑALES DE CONDUCTORES ==========
+        # Cuando se crea un conductor: Actualizar combo en asignaciones
         self.vista_conductores.conductor_creado.connect(self.vista_asignaciones.cargar_combos)
         
+        # Cuando se actualiza un conductor: Recargar combos en asignaciones
+        self.vista_conductores.conductor_actualizado.connect(self.vista_asignaciones.cargar_combos)
+        
+        # Cuando se elimina un conductor: Recargar combos en asignaciones  
+        self.vista_conductores.conductor_eliminado.connect(self.vista_asignaciones.cargar_combos)
+        
+        # Cuando cambia el estado de un conductor: Log opcional para debug
+        self.vista_conductores.conductor_estado_cambiado.connect(self._on_conductor_estado_cambiado)
+        
+        # ========== SEÑALES DE VEHÍCULOS ==========
         # Cuando se crea un vehículo: Actualizar combo en asignaciones
         self.vista_vehiculos.vehiculo_creado.connect(self.vista_asignaciones.cargar_combos)
         
+        # Cuando se actualiza un vehículo: Recargar combos en asignaciones
+        self.vista_vehiculos.vehiculo_actualizado.connect(self.vista_asignaciones.cargar_combos)
         
+        # Cuando se elimina un vehículo: Recargar combos en asignaciones  
+        self.vista_vehiculos.vehiculo_eliminado.connect(self.vista_asignaciones.cargar_combos)
+        
+        # Cuando cambia el estado de un vehículo: Log opcional para debug
+        self.vista_vehiculos.vehiculo_estado_cambiado.connect(self._on_vehiculo_estado_cambiado)
+        
+    
+    def _on_conductor_estado_cambiado(self, id_conductor, nuevo_estado):
+        """
+        Método auxiliar que se ejecuta cuando un conductor cambia de estado.
+        Útil para debug o para actualizaciones futuras en otras vistas.
+        """
+        print(f"[MainController] Conductor {id_conductor} cambió a estado: {nuevo_estado}")
+    
+    def _on_vehiculo_estado_cambiado(self, id_vehiculo, nuevo_estado):
+        """
+        Método auxiliar que se ejecuta cuando un vehículo cambia de estado.
+        Útil para debug o para actualizaciones futuras en otras vistas.
+        """
+        print(f"[MainController] Vehículo {id_vehiculo} cambió a estado: {nuevo_estado}")
 
     def ir_a_mapa(self):
         self.stackContent.setCurrentIndex(self.idx_mapa)

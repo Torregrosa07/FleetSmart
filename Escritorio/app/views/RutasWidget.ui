@@ -365,19 +365,22 @@
    </item>
    <item>
     <widget class="QWidget" name="widget" native="true">
-     <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="QTableWidget" name="tableWidget"/>
+      </item>
       <item>
        <widget class="QWebEngineView" name="webMapRuta">
         <property name="minimumSize">
          <size>
-          <width>600</width>
-          <height>400</height>
+          <width>530</width>
+          <height>375</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>800</width>
-          <height>600</height>
+          <width>765</width>
+          <height>483</height>
          </size>
         </property>
        </widget>

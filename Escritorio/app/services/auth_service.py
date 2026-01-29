@@ -10,47 +10,41 @@ class AuthService:
         except Exception as e:
             print(f"Error al conectar con Firebase: {e}")
 
+    # Escritorio/app/services/auth_service.py
+
     def login(self, email, password):
         """
         Autentica al usuario y devuelve su perfil completo con el rol.
-        
-        Returns:
-            dict: {
-                'uid': str,
-                'email': str,
-                'rol': 'gestor' | 'conductor',
-                'perfil_data': dict (datos del perfil),
-                'token': str (Firebase Auth token)
-            }
-        
-        Raises:
-            Exception: Si las credenciales son incorrectas o el usuario no tiene perfil
         """
         try:
             # 1. Autenticar con Firebase Auth
             user = self.auth.sign_in_with_email_and_password(email, password)
             uid = user['localId']
+            token = user['idToken']  # <--- GUARDAMOS EL TOKEN
             
-            # 2. Buscar perfil en /gestores/{uid}
-            gestor_data = self.db.child('gestores').child(uid).get()
+            # 2. Buscar perfil en /gestores/{uid} USANDO EL TOKEN
+            # Pasamos el token como argumento al método get()
+            gestor_data = self.db.child('gestores').child(uid).get(token) 
+            
             if gestor_data.val():
                 return {
                     'uid': uid,
                     'email': email,
                     'rol': 'gestor',
                     'perfil_data': gestor_data.val(),
-                    'token': user['idToken']
+                    'token': token
                 }
             
-            # 3. Si no es gestor, buscar en /conductores/{uid}
-            conductor_data = self.db.child('conductores').child(uid).get()
+            # 3. Si no es gestor, buscar en /conductores/{uid} USANDO EL TOKEN
+            conductor_data = self.db.child('conductores').child(uid).get(token)
+            
             if conductor_data.val():
                 return {
                     'uid': uid,
                     'email': email,
                     'rol': 'conductor',
                     'perfil_data': conductor_data.val(),
-                    'token': user['idToken']
+                    'token': token
                 }
             
             # 4. Si no tiene perfil, lanzar error

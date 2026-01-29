@@ -17,9 +17,10 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import (QApplication, QDateTimeEdit, QFormLayout, QGroupBox,
-    QHBoxLayout, QLabel, QLineEdit, QListWidget,
-    QListWidgetItem, QPushButton, QSizePolicy, QTimeEdit,
-    QVBoxLayout, QWidget)
+    QHBoxLayout, QHeaderView, QLabel, QLineEdit,
+    QListWidget, QListWidgetItem, QPushButton, QSizePolicy,
+    QTableWidget, QTableWidgetItem, QTimeEdit, QVBoxLayout,
+    QWidget)
 
 class Ui_RutasWidget(object):
     def setupUi(self, RutasWidget):
@@ -206,14 +207,19 @@ class Ui_RutasWidget(object):
 
         self.widget = QWidget(RutasWidget)
         self.widget.setObjectName(u"widget")
-        self.horizontalLayout_3 = QHBoxLayout(self.widget)
-        self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
+        self.verticalLayout_2 = QVBoxLayout(self.widget)
+        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
+        self.tableWidget = QTableWidget(self.widget)
+        self.tableWidget.setObjectName(u"tableWidget")
+
+        self.verticalLayout_2.addWidget(self.tableWidget)
+
         self.webMapRuta = QWebEngineView(self.widget)
         self.webMapRuta.setObjectName(u"webMapRuta")
-        self.webMapRuta.setMinimumSize(QSize(600, 400))
-        self.webMapRuta.setMaximumSize(QSize(800, 600))
+        self.webMapRuta.setMinimumSize(QSize(530, 375))
+        self.webMapRuta.setMaximumSize(QSize(765, 483))
 
-        self.horizontalLayout_3.addWidget(self.webMapRuta)
+        self.verticalLayout_2.addWidget(self.webMapRuta)
 
 
         self.horizontalLayout_2.addWidget(self.widget)
