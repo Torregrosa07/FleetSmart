@@ -19,8 +19,8 @@ from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import (QApplication, QDateTimeEdit, QFormLayout, QGroupBox,
     QHBoxLayout, QHeaderView, QLabel, QLineEdit,
     QListWidget, QListWidgetItem, QPushButton, QSizePolicy,
-    QTableWidget, QTableWidgetItem, QTimeEdit, QVBoxLayout,
-    QWidget)
+    QSpacerItem, QTableWidget, QTableWidgetItem, QTimeEdit,
+    QVBoxLayout, QWidget)
 
 class Ui_RutasWidget(object):
     def setupUi(self, RutasWidget):
@@ -199,6 +199,16 @@ class Ui_RutasWidget(object):
 
         self.verticalLayout.addWidget(self.btnGuardarRuta)
 
+        self.btnCancelar = QPushButton(self.groupBox)
+        self.btnCancelar.setObjectName(u"btnCancelar")
+        self.btnCancelar.setEnabled(True)
+        self.btnCancelar.setMaximumSize(QSize(16777215, 60))
+        self.btnCancelar.setFont(font3)
+        self.btnCancelar.setStyleSheet(u"background-color: #3b82f6; color: white;")
+        self.btnCancelar.setCheckable(True)
+
+        self.verticalLayout.addWidget(self.btnCancelar)
+
 
         self.horizontalLayout.addWidget(self.groupBox)
 
@@ -209,15 +219,54 @@ class Ui_RutasWidget(object):
         self.widget.setObjectName(u"widget")
         self.verticalLayout_2 = QVBoxLayout(self.widget)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
-        self.tableWidget = QTableWidget(self.widget)
-        self.tableWidget.setObjectName(u"tableWidget")
+        self.tablaRutas = QTableWidget(self.widget)
+        self.tablaRutas.setObjectName(u"tablaRutas")
 
-        self.verticalLayout_2.addWidget(self.tableWidget)
+        self.verticalLayout_2.addWidget(self.tablaRutas)
+
+        self.horizontalLayout_3 = QHBoxLayout()
+        self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
+        self.btnNuevaRuta = QPushButton(self.widget)
+        self.btnNuevaRuta.setObjectName(u"btnNuevaRuta")
+        self.btnNuevaRuta.setEnabled(True)
+        self.btnNuevaRuta.setMaximumSize(QSize(150, 60))
+        self.btnNuevaRuta.setFont(font3)
+        self.btnNuevaRuta.setStyleSheet(u"background-color: #3b82f6; color: white;")
+        self.btnNuevaRuta.setCheckable(True)
+
+        self.horizontalLayout_3.addWidget(self.btnNuevaRuta)
+
+        self.btnEditarRuta = QPushButton(self.widget)
+        self.btnEditarRuta.setObjectName(u"btnEditarRuta")
+        self.btnEditarRuta.setEnabled(True)
+        self.btnEditarRuta.setMaximumSize(QSize(150, 60))
+        self.btnEditarRuta.setFont(font3)
+        self.btnEditarRuta.setStyleSheet(u"background-color: #3b82f6; color: white;")
+        self.btnEditarRuta.setCheckable(True)
+
+        self.horizontalLayout_3.addWidget(self.btnEditarRuta)
+
+        self.btnEliminarRuta = QPushButton(self.widget)
+        self.btnEliminarRuta.setObjectName(u"btnEliminarRuta")
+        self.btnEliminarRuta.setEnabled(True)
+        self.btnEliminarRuta.setMaximumSize(QSize(150, 60))
+        self.btnEliminarRuta.setFont(font3)
+        self.btnEliminarRuta.setStyleSheet(u"background-color: #3b82f6; color: white;")
+        self.btnEliminarRuta.setCheckable(True)
+
+        self.horizontalLayout_3.addWidget(self.btnEliminarRuta)
+
+        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_3.addItem(self.horizontalSpacer)
+
+
+        self.verticalLayout_2.addLayout(self.horizontalLayout_3)
 
         self.webMapRuta = QWebEngineView(self.widget)
         self.webMapRuta.setObjectName(u"webMapRuta")
-        self.webMapRuta.setMinimumSize(QSize(530, 375))
-        self.webMapRuta.setMaximumSize(QSize(765, 483))
+        self.webMapRuta.setMinimumSize(QSize(536, 374))
+        self.webMapRuta.setMaximumSize(QSize(880, 483))
 
         self.verticalLayout_2.addWidget(self.webMapRuta)
 
@@ -250,5 +299,9 @@ class Ui_RutasWidget(object):
         self.btnEliminarParada.setText(QCoreApplication.translate("RutasWidget", u"-", None))
         self.leNuevaParada.setPlaceholderText(QCoreApplication.translate("RutasWidget", u"Escribe una direcci\u00f3n y pulsa + ", None))
         self.btnGuardarRuta.setText(QCoreApplication.translate("RutasWidget", u"Guardar Ruta", None))
+        self.btnCancelar.setText(QCoreApplication.translate("RutasWidget", u"Cancelar", None))
+        self.btnNuevaRuta.setText(QCoreApplication.translate("RutasWidget", u"+ Crear Ruta", None))
+        self.btnEditarRuta.setText(QCoreApplication.translate("RutasWidget", u"Editar Ruta", None))
+        self.btnEliminarRuta.setText(QCoreApplication.translate("RutasWidget", u"Editar Ruta", None))
     # retranslateUi
 

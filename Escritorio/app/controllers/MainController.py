@@ -116,6 +116,15 @@ class MainWindowController(QMainWindow, Ui_MainWindow):
         # Cuando se crea una ruta: Actualizar combo en asignaciones
         self.vista_rutas.ruta_creada.connect(self.vista_asignaciones.cargar_combos)
         
+        # Cuando se actualiza una ruta: Recargar combos en asignaciones
+        self.vista_rutas.ruta_actualizada.connect(self.vista_asignaciones.cargar_combos)
+        
+        # Cuando se elimina una ruta: Recargar combos en asignaciones
+        self.vista_rutas.ruta_eliminada.connect(self.vista_asignaciones.cargar_combos)
+        
+        # Cuando cambia el estado de una ruta: Log opcional para debug
+        self.vista_rutas.ruta_estado_cambiada.connect(self._on_ruta_estado_cambiada)
+        
         # ========== SEÑALES DE CONDUCTORES ==========
         # Cuando se crea un conductor: Actualizar combo en asignaciones
         self.vista_conductores.conductor_creado.connect(self.vista_asignaciones.cargar_combos)
@@ -142,6 +151,10 @@ class MainWindowController(QMainWindow, Ui_MainWindow):
         # Cuando cambia el estado de un vehículo: Log opcional para debug
         self.vista_vehiculos.vehiculo_estado_cambiado.connect(self._on_vehiculo_estado_cambiado)
         
+    
+    def _on_ruta_estado_cambiada(self, id_ruta, nuevo_estado):
+        """Handler para debug de cambios de estado de rutas"""
+        print(f"[MainController] Ruta {id_ruta} → {nuevo_estado}")
     
     def _on_conductor_estado_cambiado(self, id_conductor, nuevo_estado):
         """

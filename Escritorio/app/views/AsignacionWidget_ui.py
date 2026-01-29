@@ -132,6 +132,8 @@ class Ui_AsignacionWidget(object):
         self.groupBox_2 = QGroupBox(AsignacionWidget)
         self.groupBox_2.setObjectName(u"groupBox_2")
         self.groupBox_2.setFont(font)
+        self.verticalLayout_2 = QVBoxLayout(self.groupBox_2)
+        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.tableWidget = QTableWidget(self.groupBox_2)
         if (self.tableWidget.columnCount() < 4):
             self.tableWidget.setColumnCount(4)
@@ -144,16 +146,20 @@ class Ui_AsignacionWidget(object):
         __qtablewidgetitem3 = QTableWidgetItem()
         self.tableWidget.setHorizontalHeaderItem(3, __qtablewidgetitem3)
         self.tableWidget.setObjectName(u"tableWidget")
-        self.tableWidget.setGeometry(QRect(10, 29, 256, 192))
+
+        self.verticalLayout_2.addWidget(self.tableWidget)
+
         self.btnEliminarAsignacion = QPushButton(self.groupBox_2)
         self.btnEliminarAsignacion.setObjectName(u"btnEliminarAsignacion")
         self.btnEliminarAsignacion.setEnabled(True)
-        self.btnEliminarAsignacion.setGeometry(QRect(10, 685, 197, 60))
         self.btnEliminarAsignacion.setMinimumSize(QSize(0, 60))
         self.btnEliminarAsignacion.setMaximumSize(QSize(300, 40))
         self.btnEliminarAsignacion.setFont(font2)
         self.btnEliminarAsignacion.setStyleSheet(u"background-color: #3b82f6; color: white;")
         self.btnEliminarAsignacion.setCheckable(True)
+
+        self.verticalLayout_2.addWidget(self.btnEliminarAsignacion)
+
 
         self.horizontalLayout.addWidget(self.groupBox_2)
 
