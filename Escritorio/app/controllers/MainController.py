@@ -112,44 +112,44 @@ class MainWindowController(QMainWindow, Ui_MainWindow):
     def conectar_senales_vistas(self):
         """Conecta señales entre las diferentes vistas para sincronización"""
         
-        # ========== SEÑALES DE RUTAS ==========
-        # Cuando se crea una ruta: Actualizar combo en asignaciones
-        self.vista_rutas.ruta_creada.connect(self.vista_asignaciones.cargar_combos)
+        # ========== SEÑALES DE RUTAS → ASIGNACIONES (ACTUALIZACIÓN SELECTIVA) ==========
+        # Cuando se crea una ruta: Añadir solo esa ruta al combo
+        self.vista_rutas.ruta_creada.connect(self.vista_asignaciones.agregar_ruta_a_combo)
         
-        # Cuando se actualiza una ruta: Recargar combos en asignaciones
-        self.vista_rutas.ruta_actualizada.connect(self.vista_asignaciones.cargar_combos)
+        # Cuando se actualiza una ruta: Actualizar solo esa ruta en el combo
+        self.vista_rutas.ruta_actualizada.connect(self.vista_asignaciones.actualizar_ruta_en_combo)
         
-        # Cuando se elimina una ruta: Recargar combos en asignaciones
-        self.vista_rutas.ruta_eliminada.connect(self.vista_asignaciones.cargar_combos)
+        # Cuando se elimina una ruta: Eliminar solo esa ruta del combo
+        self.vista_rutas.ruta_eliminada.connect(self.vista_asignaciones.eliminar_ruta_de_combo)
         
         # Cuando cambia el estado de una ruta: Log opcional para debug
         self.vista_rutas.ruta_estado_cambiada.connect(self._on_ruta_estado_cambiada)
         
-        # ========== SEÑALES DE CONDUCTORES ==========
-        # Cuando se crea un conductor: Actualizar combo en asignaciones
-        self.vista_conductores.conductor_creado.connect(self.vista_asignaciones.cargar_combos)
+        # ========== SEÑALES DE CONDUCTORES → ASIGNACIONES (ACTUALIZACIÓN SELECTIVA) ==========
+        # Cuando se crea un conductor: Añadir solo ese conductor al combo
+        self.vista_conductores.conductor_creado.connect(self.vista_asignaciones.agregar_conductor_a_combo)
         
-        # Cuando se actualiza un conductor: Recargar combos en asignaciones
-        self.vista_conductores.conductor_actualizado.connect(self.vista_asignaciones.cargar_combos)
+        # Cuando se actualiza un conductor: Actualizar solo ese conductor en el combo
+        self.vista_conductores.conductor_actualizado.connect(self.vista_asignaciones.actualizar_conductor_en_combo)
         
-        # Cuando se elimina un conductor: Recargar combos en asignaciones  
-        self.vista_conductores.conductor_eliminado.connect(self.vista_asignaciones.cargar_combos)
+        # Cuando se elimina un conductor: Eliminar solo ese conductor del combo
+        self.vista_conductores.conductor_eliminado.connect(self.vista_asignaciones.eliminar_conductor_de_combo)
         
         # Cuando cambia el estado de un conductor: Log opcional para debug
         self.vista_conductores.conductor_estado_cambiado.connect(self._on_conductor_estado_cambiado)
         
-        # ========== SEÑALES DE VEHÍCULOS ==========
-        # Cuando se crea un vehículo: Actualizar combo en asignaciones
-        self.vista_vehiculos.vehiculo_creado.connect(self.vista_asignaciones.cargar_combos)
+        # ========== SEÑALES DE VEHÍCULOS → ASIGNACIONES (ACTUALIZACIÓN SELECTIVA) ==========
+        # Cuando se crea un vehículo: Añadir solo ese vehículo al combo (si está disponible)
+        self.vista_vehiculos.vehiculo_creado.connect(self.vista_asignaciones.agregar_vehiculo_a_combo)
         
-        # Cuando se actualiza un vehículo: Recargar combos en asignaciones
-        self.vista_vehiculos.vehiculo_actualizado.connect(self.vista_asignaciones.cargar_combos)
+        # Cuando se actualiza un vehículo: Actualizar solo ese vehículo en el combo
+        self.vista_vehiculos.vehiculo_actualizado.connect(self.vista_asignaciones.actualizar_vehiculo_en_combo)
         
-        # Cuando se elimina un vehículo: Recargar combos en asignaciones  
-        self.vista_vehiculos.vehiculo_eliminado.connect(self.vista_asignaciones.cargar_combos)
+        # Cuando se elimina un vehículo: Eliminar solo ese vehículo del combo
+        self.vista_vehiculos.vehiculo_eliminado.connect(self.vista_asignaciones.eliminar_vehiculo_de_combo)
         
-        # Cuando cambia el estado de un vehículo: Log opcional para debug
-        self.vista_vehiculos.vehiculo_estado_cambiado.connect(self._on_vehiculo_estado_cambiado)
+        # Cuando cambia el estado de un vehículo: Manejar disponibilidad en combo
+        self.vista_vehiculos.vehiculo_estado_cambiado.connect(self.vista_asignaciones.manejar_cambio_estado_vehiculo)
         
     
     def _on_ruta_estado_cambiada(self, id_ruta, nuevo_estado):

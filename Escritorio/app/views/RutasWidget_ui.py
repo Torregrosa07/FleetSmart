@@ -302,6 +302,6 @@ class Ui_RutasWidget(object):
         self.btnCancelar.setText(QCoreApplication.translate("RutasWidget", u"Cancelar", None))
         self.btnNuevaRuta.setText(QCoreApplication.translate("RutasWidget", u"+ Crear Ruta", None))
         self.btnEditarRuta.setText(QCoreApplication.translate("RutasWidget", u"Editar Ruta", None))
-        self.btnEliminarRuta.setText(QCoreApplication.translate("RutasWidget", u"Editar Ruta", None))
+        self.btnEliminarRuta.setText(QCoreApplication.translate("RutasWidget", u"Eliminar Ruta", None))
     # retranslateUi
 
