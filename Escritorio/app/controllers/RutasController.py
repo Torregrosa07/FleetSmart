@@ -1,47 +1,20 @@
-import folium
-import io
 from PySide6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem, QHeaderView, QAbstractItemView
-from PySide6.QtCore import QThread, Signal, QDate, QTime
-from geopy.geocoders import Nominatim 
+from PySide6.QtCore import Signal, QDate, QTime
 
 from app.views.RutasWidget_ui import Ui_RutasWidget
 from app.models.ruta import Ruta
-from app.repositories.ruta_repository import RutaRepository
-
-
-class GeocodingThread(QThread):
-    """
-    Thread para geocodificar direcciones sin bloquear la interfaz.
-    Esto hace que la app no se congele mientras busca direcciones en internet.
-    """
-    finished = Signal(object, str)  # (ubicacion, tipo)
-    
-    def __init__(self, direccion, tipo):
-        super().__init__()
-        self.direccion = direccion
-        self.tipo = tipo
-        self.geolocalizador = Nominatim(user_agent="tfg_fleetsmart_v1")
-    
-    def run(self):
-        """Se ejecuta en segundo plano"""
-        try:
-            ubicacion = self.geolocalizador.geocode(self.direccion)
-            self.finished.emit(ubicacion, self.tipo)
-        except Exception as e:
-            print(f"Error geocodificando: {e}")
-            self.finished.emit(None, self.tipo)
+from app.services.rutas_service import RutasService
+from app.utils.geocoding_utils import GeocodingUtils
+from app.utils.map_utils import MapUtils
 
 
 class RutasController(QWidget, Ui_RutasWidget):
-    """
-    Controlador para gestionar plantillas de rutas (CRUD completo).
-    Las rutas se asignan a conductores/vehículos desde AsignacionController.
-    """
+
     # ========== SEÑALES ==========
-    ruta_creada = Signal(object)          # ruta completa
-    ruta_actualizada = Signal(str)        # id_ruta
-    ruta_eliminada = Signal(str)          # id_ruta
-    ruta_estado_cambiada = Signal(str, str)  # id_ruta, nuevo_estado
+    ruta_creada = Signal(object)
+    ruta_actualizada = Signal(str)
+    ruta_eliminada = Signal(str)
+    ruta_estado_cambiada = Signal(str, str)
     
     def __init__(self, db_connection, app_state):
         super().__init__()
@@ -50,19 +23,21 @@ class RutasController(QWidget, Ui_RutasWidget):
         # Estado global
         self.app_state = app_state
         
-        # Repositorio
-        self.repo_rutas = RutaRepository(db_connection)
+        # Servicio de lógica de negocio
+        self.service = RutasService(db_connection)
         
-        # Lista y caché de rutas
-        self.lista_rutas_actual = []
+        # Utilidad de geocodificación
+        self.geocoding = GeocodingUtils()
+        
+        # Lista y caché
+        self.lista_rutas = []
         self.cache_rutas = {}
         
         # Variables para el mapa
-        self.coordenadas_origen = None 
-        self.lista_destinos = []
+        self.coordenadas_origen = None
+        self.lista_paradas = []
         
-        # Variables para geocodificación
-        self.geocoding_thread = None
+        # Variable temporal para geocoding de paradas
         self.texto_parada_temporal = ""
         
         # Control de modo edición
@@ -72,62 +47,35 @@ class RutasController(QWidget, Ui_RutasWidget):
         # Configuración inicial
         self.configurar_fecha_hora()
         self.configurar_tabla()
-        self.cargar_tabla_rutas()
+        self.cargar_tabla()
         self.dibujar_mapa_vacio()
-        
-        # Conectar señales
-        self.conectar_senales()
+        self.conectar_botones()
+    
+    # =========================================================================
+    # CONFIGURACIÓN INICIAL
+    # =========================================================================
     
     def configurar_tabla(self):
         """Configura el estilo de la tabla de rutas"""
         if hasattr(self, 'tablaRutas'):
-            # AGREGAR: Configurar columnas
             self.tablaRutas.setColumnCount(6)
             self.tablaRutas.setHorizontalHeaderLabels([
                 "Nombre", "Origen", "Destino", "Fecha", "Estado", "Nº Paradas"
             ])
             
-            # Configurar estilo
             self.tablaRutas.horizontalHeader().setStretchLastSection(False)
             self.tablaRutas.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
             self.tablaRutas.setEditTriggers(QAbstractItemView.NoEditTriggers)
             self.tablaRutas.setSelectionBehavior(QAbstractItemView.SelectRows)
     
-    def cargar_tabla_rutas(self):
-        """Carga todas las rutas en la tabla"""
-        if not hasattr(self, 'tablaRutas'):
-            # Si no hay tabla en el UI, simplemente no hacer nada
-            return
-            
-        self.lista_rutas_actual = self.repo_rutas.obtener_todas()
-        self.cache_rutas = {r.id_ruta: r for r in self.lista_rutas_actual}
-        
-        self.tablaRutas.setRowCount(0)
-        
-        for i, ruta in enumerate(self.lista_rutas_actual):
-            self.tablaRutas.insertRow(i)
-            self._llenar_fila_tabla(i, ruta)
-    
-    def _llenar_fila_tabla(self, fila, ruta):
-        """Método auxiliar para llenar una fila de la tabla"""
-        if not hasattr(self, 'tablaRutas'):
-            return
-            
-        self.tablaRutas.setItem(fila, 0, QTableWidgetItem(ruta.nombre))
-        self.tablaRutas.setItem(fila, 1, QTableWidgetItem(ruta.origen))
-        self.tablaRutas.setItem(fila, 2, QTableWidgetItem(ruta.destino))
-        self.tablaRutas.setItem(fila, 3, QTableWidgetItem(ruta.fecha))
-        self.tablaRutas.setItem(fila, 4, QTableWidgetItem(ruta.estado))
-        self.tablaRutas.setItem(fila, 5, QTableWidgetItem(str(len(ruta.paradas))))
-
     def configurar_fecha_hora(self):
         """Configura los valores por defecto de fecha y hora"""
         self.dtFecha.setDate(QDate.currentDate())
         self.teHoraInicio.setTime(QTime(8, 0))
         self.teHoraFin.setTime(QTime(17, 0))
-
-    def conectar_senales(self):
-        """Conecta todos los botones y eventos con sus métodos"""
+    
+    def conectar_botones(self):
+        """Conecta todos los botones y eventos"""
         # Geocodificación
         self.leOrigen.editingFinished.connect(self.buscar_origen)
         
@@ -136,7 +84,7 @@ class RutasController(QWidget, Ui_RutasWidget):
         self.btnEliminarParada.clicked.connect(self.borrar_parada)
         self.btnGuardarRuta.clicked.connect(self.guardar_o_actualizar_ruta)
         
-        # Nuevos botones para gestión de rutas
+        # Botones de gestión de rutas
         if hasattr(self, 'btnEditarRuta'):
             self.btnEditarRuta.clicked.connect(self.editar_ruta_seleccionada)
         if hasattr(self, 'btnEliminarRuta'):
@@ -145,7 +93,192 @@ class RutasController(QWidget, Ui_RutasWidget):
             self.btnNuevaRuta.clicked.connect(self.modo_crear_nueva)
         if hasattr(self, 'btnCancelar'):
             self.btnCancelar.clicked.connect(self.cancelar_edicion)
-
+    
+    # =========================================================================
+    # GESTIÓN DE TABLA
+    # =========================================================================
+    
+    def cargar_tabla(self):
+        """Carga todas las rutas desde el servicio"""
+        if not hasattr(self, 'tablaRutas'):
+            return
+        
+        self.lista_rutas = self.service.obtener_todas()
+        self.cache_rutas = {r.id_ruta: r for r in self.lista_rutas}
+        
+        self.tablaRutas.setRowCount(0)
+        
+        for i, ruta in enumerate(self.lista_rutas):
+            self.tablaRutas.insertRow(i)
+            self.llenar_fila(i, ruta)
+    
+    def llenar_fila(self, fila, ruta):
+        """Llena una fila de la tabla con datos de una ruta"""
+        if not hasattr(self, 'tablaRutas'):
+            return
+        
+        self.tablaRutas.setItem(fila, 0, QTableWidgetItem(ruta.nombre))
+        self.tablaRutas.setItem(fila, 1, QTableWidgetItem(ruta.origen))
+        self.tablaRutas.setItem(fila, 2, QTableWidgetItem(ruta.destino))
+        self.tablaRutas.setItem(fila, 3, QTableWidgetItem(ruta.fecha))
+        self.tablaRutas.setItem(fila, 4, QTableWidgetItem(ruta.estado))
+        self.tablaRutas.setItem(fila, 5, QTableWidgetItem(str(len(ruta.paradas))))
+    
+    def agregar_a_tabla(self, ruta):
+        """Agrega una ruta a la tabla sin recargar todo"""
+        if not hasattr(self, 'tablaRutas'):
+            return
+        
+        self.lista_rutas.append(ruta)
+        self.cache_rutas[ruta.id_ruta] = ruta
+        
+        nueva_fila = self.tablaRutas.rowCount()
+        self.tablaRutas.insertRow(nueva_fila)
+        self.llenar_fila(nueva_fila, ruta)
+    
+    def actualizar_en_tabla(self, fila, ruta):
+        """Actualiza una fila específica"""
+        if not hasattr(self, 'tablaRutas'):
+            return
+        
+        self.lista_rutas[fila] = ruta
+        self.cache_rutas[ruta.id_ruta] = ruta
+        self.llenar_fila(fila, ruta)
+    
+    def eliminar_de_tabla(self, id_ruta):
+        """Elimina una ruta de la tabla"""
+        if not hasattr(self, 'tablaRutas'):
+            return
+        
+        # Buscar fila
+        fila = None
+        for i, ruta in enumerate(self.lista_rutas):
+            if ruta.id_ruta == id_ruta:
+                fila = i
+                break
+        
+        if fila is None:
+            return
+        
+        # Eliminar de lista y caché
+        del self.lista_rutas[fila]
+        if id_ruta in self.cache_rutas:
+            del self.cache_rutas[id_ruta]
+        
+        # Eliminar fila de tabla
+        self.tablaRutas.removeRow(fila)
+    
+    # =========================================================================
+    # GESTIÓN DE MAPA
+    # =========================================================================
+    
+    def dibujar_mapa_vacio(self):
+        """Dibuja un mapa vacío centrado en España"""
+        mapa = MapUtils.create_base_map()
+        self.mostrar_mapa(mapa)
+    
+    def mostrar_mapa(self, mapa):
+        """Renderiza el mapa en el QWebEngineView"""
+        html = MapUtils.render_to_html(mapa)
+        self.webMapRuta.setHtml(html)
+    
+    def actualizar_mapa(self):
+        """Actualiza el mapa con origen y paradas usando MapUtils"""
+        if not self.coordenadas_origen and not self.lista_paradas:
+            self.dibujar_mapa_vacio()
+            return
+        
+        origen_label = self.leOrigen.text() if self.leOrigen.text() else "Origen"
+        
+        mapa = MapUtils.create_route_map(
+            origin_coords=self.coordenadas_origen,
+            origin_label=origen_label,
+            waypoints=self.lista_paradas
+        )
+        
+        self.mostrar_mapa(mapa)
+    
+    # =========================================================================
+    # GEOCODIFICACIÓN
+    # =========================================================================
+    
+    def buscar_origen(self):
+        """Geocodifica el origen usando GeocodingUtils"""
+        texto = self.leOrigen.text().strip()
+        if not texto:
+            return
+        
+        # Usar geocoding asíncrono
+        self.geocoding.geocode_async(texto, "origen", self.cuando_termine_geocoding)
+    
+    def agregar_parada(self):
+        """Geocodifica y añade una parada"""
+        texto = self.leNuevaParada.text().strip()
+        if not texto:
+            QMessageBox.warning(self, "Aviso", "Escribe una dirección para la parada.")
+            return
+        
+        # Guardar texto temporal
+        self.texto_parada_temporal = texto
+        
+        self.geocoding.geocode_async(texto, "parada", self.cuando_termine_geocoding)
+    
+    def cuando_termine_geocoding(self, ubicacion, tipo):
+        """Callback cuando termina la geocodificación"""
+        if not ubicacion:
+            QMessageBox.warning(self, "Error", "No se encontró la dirección.")
+            return
+        
+        if tipo == "origen":
+            self.coordenadas_origen = GeocodingUtils.coords_to_list(ubicacion)
+            self.actualizar_mapa()
+        
+        elif tipo == "parada":
+            parada = {
+                "direccion": self.texto_parada_temporal,
+                "coords": GeocodingUtils.coords_to_list(ubicacion),
+                "orden": len(self.lista_paradas) + 1
+            }
+            
+            self.lista_paradas.append(parada)
+            
+            self.listParadas.addItem(f"{parada['orden']}. {parada['direccion']}")
+            
+            self.leDestino.setText(self.texto_parada_temporal)
+            
+            self.leNuevaParada.clear()
+            self.texto_parada_temporal = ""
+            
+            self.actualizar_mapa()
+    
+    def borrar_parada(self):
+        """Borra la parada seleccionada"""
+        fila = self.listParadas.currentRow()
+        if fila < 0:
+            QMessageBox.warning(self, "Aviso", "Selecciona una parada para borrar.")
+            return
+        
+        # Eliminar de lista
+        del self.lista_paradas[fila]
+        
+        # Reordenar paradas
+        for i, parada in enumerate(self.lista_paradas):
+            parada['orden'] = i + 1
+        
+        # Actualizar lista visual
+        self.listParadas.clear()
+        for parada in self.lista_paradas:
+            self.listParadas.addItem(f"{parada['orden']}. {parada['direccion']}")
+        
+        # Actualizar destino
+        if self.lista_paradas:
+            self.leDestino.setText(self.lista_paradas[-1]['direccion'])
+        else:
+            self.leDestino.clear()
+        
+        # Actualizar mapa
+        self.actualizar_mapa()
+    
     # =========================================================================
     # GESTIÓN DE MODOS (CREAR vs EDITAR)
     # =========================================================================
@@ -179,163 +312,54 @@ class RutasController(QWidget, Ui_RutasWidget):
         self.leOrigen.setText(ruta.origen)
         self.leDestino.setText(ruta.destino)
         
-        # Cargar fecha y horas
+        # Cargar fecha
         fecha_partes = ruta.fecha.split("/")
         if len(fecha_partes) == 3:
-            self.dtFecha.setDate(QDate(int(fecha_partes[2]), int(fecha_partes[1]), int(fecha_partes[0])))
+            self.dtFecha.setDate(QDate(
+                int(fecha_partes[2]),
+                int(fecha_partes[1]),
+                int(fecha_partes[0])
+            ))
         
+        # Cargar horas
         hora_inicio_partes = ruta.hora_inicio_prevista.split(":")
         if len(hora_inicio_partes) == 2:
-            self.teHoraInicio.setTime(QTime(int(hora_inicio_partes[0]), int(hora_inicio_partes[1])))
+            self.teHoraInicio.setTime(QTime(
+                int(hora_inicio_partes[0]),
+                int(hora_inicio_partes[1])
+            ))
         
         hora_fin_partes = ruta.hora_fin_prevista.split(":")
         if len(hora_fin_partes) == 2:
-            self.teHoraFin.setTime(QTime(int(hora_fin_partes[0]), int(hora_fin_partes[1])))
+            self.teHoraFin.setTime(QTime(
+                int(hora_fin_partes[0]),
+                int(hora_fin_partes[1])
+            ))
         
         # Cargar paradas
-        self.lista_destinos = ruta.paradas if ruta.paradas else []
+        self.lista_paradas = ruta.paradas if ruta.paradas else []
         self.listParadas.clear()
-        for parada in self.lista_destinos:
+        for parada in self.lista_paradas:
             self.listParadas.addItem(f"{parada['orden']}. {parada['direccion']}")
         
-        # Intentar geocodificar el origen para mostrar en el mapa
+        # Geocodificar origen para mostrar en mapa
         if ruta.origen:
             self.buscar_origen()
-
-    # =========================================================================
-    # MAPA
-    # =========================================================================
     
-    def dibujar_mapa_vacio(self):
-        """Dibuja un mapa vacío centrado en España"""
-        mapa = folium.Map(location=[40.4168, -3.7038], zoom_start=6)
-        self.mostrar_mapa(mapa)
-
-    def mostrar_mapa(self, mapa):
-        """Renderiza el mapa en el QWebEngineView"""
-        datos = io.BytesIO()
-        mapa.save(datos, close_file=False)
-        self.webMapRuta.setHtml(datos.getvalue().decode())
-
-    def actualizar_mapa(self):
-        """Actualiza el mapa con origen y paradas"""
-        if self.coordenadas_origen:
-            centro = self.coordenadas_origen
-        else:
-            centro = [40.4168, -3.7038]
-        
-        mapa = folium.Map(location=centro, zoom_start=12)
-        puntos = []
-
-        # Pintar origen
-        if self.coordenadas_origen:
-            folium.Marker(
-                location=self.coordenadas_origen,
-                popup="INICIO: " + self.leOrigen.text(),
-                icon=folium.Icon(color="green", icon="play", prefix="fa")
-            ).add_to(mapa)
-            puntos.append(self.coordenadas_origen)
-
-        # Pintar paradas
-        for i, parada in enumerate(self.lista_destinos):
-            es_ultima = (i == len(self.lista_destinos) - 1)
-            
-            folium.Marker(
-                location=parada['coords'],
-                popup=f"Parada {i+1}: {parada['direccion']}",
-                icon=folium.Icon(
-                    color="blue" if es_ultima else "red", 
-                    icon="stop" if es_ultima else "flag", 
-                    prefix="fa"
-                )
-            ).add_to(mapa)
-            puntos.append(parada['coords'])
-
-        # Línea conectando todos los puntos
-        if len(puntos) > 1:
-            folium.PolyLine(
-                locations=puntos, 
-                color="blue", 
-                weight=4, 
-                opacity=0.7
-            ).add_to(mapa)
-            mapa.fit_bounds(puntos)
-
-        self.mostrar_mapa(mapa)
-
-    # =========================================================================
-    # GEOCODIFICACIÓN
-    # =========================================================================
-    
-    def buscar_origen(self):
-        """Geocodifica el origen en segundo plano"""
-        texto = self.leOrigen.text().strip()
-        if not texto:
-            return
-        
-        self.geocoding_thread = GeocodingThread(texto, "origen")
-        self.geocoding_thread.finished.connect(self.cuando_termine_geocoding)
-        self.geocoding_thread.start()
-
-    def agregar_parada(self):
-        """Geocodifica y añade una parada en segundo plano"""
-        texto = self.leNuevaParada.text().strip()
-        if not texto:
-            return
-        
-        self.texto_parada_temporal = texto
-        
-        self.geocoding_thread = GeocodingThread(texto, "parada")
-        self.geocoding_thread.finished.connect(self.cuando_termine_geocoding)
-        self.geocoding_thread.start()
-
-    def cuando_termine_geocoding(self, ubicacion, tipo):
-        """Callback que se ejecuta cuando termina la geocodificación"""
-        if not ubicacion:
-            QMessageBox.warning(self, "Error", "No se encontró la dirección.")
-            return
-        
-        if tipo == "origen":
-            self.coordenadas_origen = [ubicacion.latitude, ubicacion.longitude]
-            self.actualizar_mapa()
-            
-        elif tipo == "parada":
-            parada = {
-                "direccion": self.texto_parada_temporal,
-                "coords": [ubicacion.latitude, ubicacion.longitude],
-                "orden": len(self.lista_destinos) + 1
-            }
-            
-            self.lista_destinos.append(parada)
-            self.listParadas.addItem(f"{parada['orden']}. {parada['direccion']}")
-            self.leDestino.setText(self.texto_parada_temporal)
-            self.leNuevaParada.clear()
-            self.texto_parada_temporal = ""
-            self.actualizar_mapa()
-
-    def borrar_parada(self):
-        """Borra la parada seleccionada"""
-        fila = self.listParadas.currentRow()
-        if fila < 0:
-            QMessageBox.warning(self, "Aviso", "Selecciona una parada.")
-            return
-
-        del self.lista_destinos[fila]
-        
-        for i, parada in enumerate(self.lista_destinos):
-            parada['orden'] = i + 1
-        
+    def limpiar_formulario(self):
+        """Limpia todos los campos del formulario"""
+        self.leNombreRuta.clear()
+        self.leOrigen.clear()
+        self.leNuevaParada.clear()
+        self.leDestino.clear()
         self.listParadas.clear()
-        for parada in self.lista_destinos:
-            self.listParadas.addItem(f"{parada['orden']}. {parada['direccion']}")
-        
-        if self.lista_destinos:
-            self.leDestino.setText(self.lista_destinos[-1]['direccion'])
-        else:
-            self.leDestino.clear()
-        
-        self.actualizar_mapa()
-
+        self.coordenadas_origen = None
+        self.lista_paradas = []
+        self.dtFecha.setDate(QDate.currentDate())
+        self.teHoraInicio.setTime(QTime(8, 0))
+        self.teHoraFin.setTime(QTime(17, 0))
+        self.dibujar_mapa_vacio()
+    
     # =========================================================================
     # GUARDAR / ACTUALIZAR RUTA
     # =========================================================================
@@ -348,31 +372,27 @@ class RutasController(QWidget, Ui_RutasWidget):
             self.guardar_ruta_nueva()
     
     def guardar_ruta_nueva(self):
-        """Guarda una nueva plantilla de ruta en Firebase"""
-        
-        # Validaciones
+        """Guarda una nueva ruta"""
+        # Obtener datos del formulario
         nombre = self.leNombreRuta.text().strip()
-        if not nombre:
-            QMessageBox.warning(self, "Error", "La ruta necesita un nombre.")
-            return
-
-        if not self.coordenadas_origen:
-            QMessageBox.warning(self, "Error", "Define un punto de origen.")
-            return
-        
-        if not self.lista_destinos:
-            QMessageBox.warning(self, "Error", "Añade al menos una parada.")
-            return
-
-        # Obtener datos
-        id_gestor = self.app_state["user"]["uid"]
-        origen = self.leOrigen.text()
-        destino = self.lista_destinos[-1]['direccion']
+        origen = self.leOrigen.text().strip()
         fecha = self.dtFecha.date().toString("dd/MM/yyyy")
         hora_inicio = self.teHoraInicio.time().toString("HH:mm")
         hora_fin = self.teHoraFin.time().toString("HH:mm")
-
+        
+        # VALIDAR PRIMERO
+        valido, mensaje_error = self.service.validar_ruta(
+            nombre, origen, self.lista_paradas, fecha, hora_inicio, hora_fin
+        )
+        
+        if not valido:
+            QMessageBox.warning(self, "Datos Inválidos", mensaje_error)
+            return
+        
         # Crear objeto Ruta
+        id_gestor = self.app_state["user"]["uid"]
+        destino = self.lista_paradas[-1]['direccion']
+        
         nueva_ruta = Ruta(
             nombre=nombre,
             origen=origen,
@@ -382,59 +402,57 @@ class RutasController(QWidget, Ui_RutasWidget):
             hora_fin_prevista=hora_fin,
             id_gestor=id_gestor,
             estado="Pendiente",
-            paradas=self.lista_destinos
+            paradas=self.lista_paradas
         )
         
-        # Guardar en Firebase
-        if self.repo_rutas.guardar_ruta(nueva_ruta):
+        # Guardar usando el servicio
+        exito, ruta_creada, mensaje = self.service.crear_ruta(nueva_ruta)
+        
+        if exito:
             QMessageBox.information(
-                self, 
-                "Guardado", 
+                self,
+                "Guardado",
                 f"Ruta '{nombre}' creada correctamente."
             )
             
-            # Actualización selectiva si hay tabla
-            if hasattr(self, 'tablaRutas'):
-                self.agregar_ruta_a_tabla(nueva_ruta)
+            # Agregar a tabla
+            self.agregar_a_tabla(ruta_creada)
             
             # Emitir señal
-            self.ruta_creada.emit(nueva_ruta)
+            self.ruta_creada.emit(ruta_creada)
             
+            # Limpiar formulario
             self.limpiar_formulario()
         else:
-            QMessageBox.critical(self, "Error", "Error al guardar la ruta.")
+            QMessageBox.critical(self, "Error", mensaje)
     
     def actualizar_ruta(self):
         """Actualiza una ruta existente"""
         if not self.ruta_en_edicion:
             return
         
-        # Validaciones
+        # Obtener datos del formulario
         nombre = self.leNombreRuta.text().strip()
-        if not nombre:
-            QMessageBox.warning(self, "Error", "La ruta necesita un nombre.")
-            return
-
-        if not self.coordenadas_origen:
-            QMessageBox.warning(self, "Error", "Define un punto de origen.")
-            return
-        
-        if not self.lista_destinos:
-            QMessageBox.warning(self, "Error", "Añade al menos una parada.")
-            return
-
-        # Mantener el mismo ID y gestor
-        id_ruta = self.ruta_en_edicion.id_ruta
-        id_gestor = self.ruta_en_edicion.id_gestor
-        estado_anterior = self.ruta_en_edicion.estado
-        
-        # Obtener datos actualizados
-        origen = self.leOrigen.text()
-        destino = self.lista_destinos[-1]['direccion']
+        origen = self.leOrigen.text().strip()
         fecha = self.dtFecha.date().toString("dd/MM/yyyy")
         hora_inicio = self.teHoraInicio.time().toString("HH:mm")
         hora_fin = self.teHoraFin.time().toString("HH:mm")
-
+        
+        # VALIDAR PRIMERO
+        valido, mensaje_error = self.service.validar_ruta(
+            nombre, origen, self.lista_paradas, fecha, hora_inicio, hora_fin
+        )
+        
+        if not valido:
+            QMessageBox.warning(self, "Datos Inválidos", mensaje_error)
+            return
+        
+        # Mantener datos originales
+        id_ruta = self.ruta_en_edicion.id_ruta
+        id_gestor = self.ruta_en_edicion.id_gestor
+        estado = self.ruta_en_edicion.estado
+        destino = self.lista_paradas[-1]['direccion']
+        
         # Crear objeto Ruta actualizado
         ruta_actualizada = Ruta(
             id_ruta=id_ruta,
@@ -445,32 +463,32 @@ class RutasController(QWidget, Ui_RutasWidget):
             hora_inicio_prevista=hora_inicio,
             hora_fin_prevista=hora_fin,
             id_gestor=id_gestor,
-            estado=estado_anterior,  # Mantener el estado actual
-            paradas=self.lista_destinos
+            estado=estado,
+            paradas=self.lista_paradas
         )
         
-        # Actualizar en Firebase
-        if self.repo_rutas.actualizar_ruta(ruta_actualizada):
+        # Actualizar usando el servicio
+        exito, mensaje = self.service.actualizar_ruta(ruta_actualizada)
+        
+        if exito:
             QMessageBox.information(
                 self,
                 "Actualizado",
                 f"Ruta '{nombre}' actualizada correctamente."
             )
             
-            # Actualización selectiva si hay tabla
-            if hasattr(self, 'tablaRutas'):
-                self.actualizar_fila_ruta_con_datos(
-                    self.lista_rutas_actual.index(self.ruta_en_edicion),
-                    ruta_actualizada
-                )
+            # Actualizar tabla
+            fila = self.lista_rutas.index(self.ruta_en_edicion)
+            self.actualizar_en_tabla(fila, ruta_actualizada)
             
             # Emitir señal
             self.ruta_actualizada.emit(id_ruta)
             
+            # Volver a modo creación
             self.modo_crear_nueva()
         else:
-            QMessageBox.critical(self, "Error", "Error al actualizar la ruta.")
-
+            QMessageBox.critical(self, "Error", mensaje)
+    
     # =========================================================================
     # EDITAR / ELIMINAR RUTA
     # =========================================================================
@@ -479,107 +497,61 @@ class RutasController(QWidget, Ui_RutasWidget):
         """Carga la ruta seleccionada en el formulario para editarla"""
         if not hasattr(self, 'tablaRutas'):
             return
-            
+        
         fila = self.tablaRutas.currentRow()
         if fila < 0:
             QMessageBox.warning(self, "Aviso", "Selecciona una ruta de la tabla.")
             return
         
-        ruta = self.lista_rutas_actual[fila]
+        ruta = self.lista_rutas[fila]
         self.modo_editar(ruta)
     
     def eliminar_ruta_seleccionada(self):
         """Elimina la ruta seleccionada"""
         if not hasattr(self, 'tablaRutas'):
             return
-            
+        
         fila = self.tablaRutas.currentRow()
         if fila < 0:
             QMessageBox.warning(self, "Aviso", "Selecciona una ruta de la tabla.")
             return
         
-        ruta = self.lista_rutas_actual[fila]
+        ruta = self.lista_rutas[fila]
         
         respuesta = QMessageBox.question(
             self,
             "Confirmar",
-            f"¿Eliminar la ruta '{ruta.nombre}'?\n\nEsta acción no se puede deshacer.",
+            f"¿Eliminar la ruta '{ruta.nombre}'?\n\n"
+            f"⚠️ Esta acción no se puede deshacer.",
             QMessageBox.Yes | QMessageBox.No
         )
         
-        if respuesta == QMessageBox.Yes:
-            id_ruta = ruta.id_ruta
+        if respuesta != QMessageBox.Yes:
+            return
+        
+        # Eliminar usando el servicio
+        exito, mensaje = self.service.eliminar_ruta(ruta.id_ruta)
+        
+        if exito:
+            # Eliminar de tabla
+            self.eliminar_de_tabla(ruta.id_ruta)
             
-            if self.repo_rutas.eliminar_ruta(id_ruta):
-                # Actualización selectiva
-                self.eliminar_ruta_de_tabla(id_ruta)
-                
-                # Emitir señal
-                self.ruta_eliminada.emit(id_ruta)
-                
-                QMessageBox.information(self, "Eliminado", "Ruta eliminada correctamente.")
-                
-                # Si estábamos editando esta ruta, limpiar formulario
-                if self.modo_edicion and self.ruta_en_edicion.id_ruta == id_ruta:
-                    self.modo_crear_nueva()
-            else:
-                QMessageBox.critical(self, "Error", "No se pudo eliminar la ruta.")
-
+            # Emitir señal
+            self.ruta_eliminada.emit(ruta.id_ruta)
+            
+            QMessageBox.information(self, "Eliminado", "Ruta eliminada correctamente.")
+            
+            # Si estábamos editando esta ruta, limpiar formulario
+            if self.modo_edicion and self.ruta_en_edicion.id_ruta == ruta.id_ruta:
+                self.modo_crear_nueva()
+        else:
+            QMessageBox.critical(self, "Error", mensaje)
+    
     # =========================================================================
-    # ACTUALIZACIÓN SELECTIVA DE TABLA
+    # LIMPIEZA AL CERRAR
     # =========================================================================
     
-    def agregar_ruta_a_tabla(self, ruta):
-        """Agrega una nueva ruta a la tabla sin recargar todo"""
-        if not hasattr(self, 'tablaRutas'):
-            return
-            
-        self.lista_rutas_actual.append(ruta)
-        self.cache_rutas[ruta.id_ruta] = ruta
-        
-        nueva_fila = self.tablaRutas.rowCount()
-        self.tablaRutas.insertRow(nueva_fila)
-        self._llenar_fila_tabla(nueva_fila, ruta)
-    
-    def actualizar_fila_ruta_con_datos(self, fila, ruta_actualizada):
-        """Actualiza una fila específica con datos ya proporcionados"""
-        if not hasattr(self, 'tablaRutas'):
-            return
-            
-        self.lista_rutas_actual[fila] = ruta_actualizada
-        self.cache_rutas[ruta_actualizada.id_ruta] = ruta_actualizada
-        self._llenar_fila_tabla(fila, ruta_actualizada)
-    
-    def eliminar_ruta_de_tabla(self, id_ruta):
-        """Elimina una ruta de la tabla sin recargar todo"""
-        if not hasattr(self, 'tablaRutas'):
-            return
-            
-        fila = None
-        for i, ruta in enumerate(self.lista_rutas_actual):
-            if ruta.id_ruta == id_ruta:
-                fila = i
-                break
-        
-        if fila is None:
-            return
-        
-        del self.lista_rutas_actual[fila]
-        if id_ruta in self.cache_rutas:
-            del self.cache_rutas[id_ruta]
-        
-        self.tablaRutas.removeRow(fila)
-
-    def limpiar_formulario(self):
-        """Limpia todos los campos"""
-        self.leNombreRuta.clear()
-        self.leOrigen.clear()
-        self.leNuevaParada.clear()
-        self.leDestino.clear()
-        self.listParadas.clear()
-        self.coordenadas_origen = None
-        self.lista_destinos = []
-        self.dtFecha.setDate(QDate.currentDate())
-        self.teHoraInicio.setTime(QTime(8, 0))
-        self.teHoraFin.setTime(QTime(17, 0))
-        self.dibujar_mapa_vacio()
+    def closeEvent(self, event):
+        """Cancelar geocoding activo al cerrar"""
+        self.geocoding.cancel_active()
+        event.accept()

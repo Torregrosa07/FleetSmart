@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QDialog, QMessageBox
 from app.views.VehiculosDialog_ui import Ui_VehiculosDialog
 from app.models.vehiculo import Vehiculo
-from app.services.language_service import LanguageService
+from app.utils.language_utils import LanguageService
 
 class VehiculoDialogController(QDialog, Ui_VehiculosDialog):
     def __init__(self, parent=None, vehiculo_a_editar=None, app_state=None):

@@ -2,7 +2,6 @@ from PySide6.QtWidgets import QApplication, QMessageBox
 from app.controllers.LoginController import LoginController
 from app.controllers.MainController import MainWindowController
 from app.styles.style_manager import StyleManager
-# IMPORTAR EL SERVICIO
 from app.services.settings_service import SettingsService
 
 class AppController:

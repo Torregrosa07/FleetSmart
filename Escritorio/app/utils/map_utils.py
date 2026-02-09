@@ -1,16 +1,17 @@
 """
-MapService - Servicio para gestión de mapas con Folium
-Centraliza toda la lógica de creación y manipulación de mapas
+MapUtils - Utilidades para gestión de mapas con Folium
+
+Centraliza toda la lógica de creación y manipulación de mapas.
+Se usa desde controladores que necesiten mostrar mapas.
 """
 import folium
 import io
-from typing import List, Dict, Any, Optional, Tuple
-from PySide6.QtCore import QObject
+from typing import List, Dict, Any, Optional
 
 
-class MapService:
+class MapUtils:
     """
-    Servicio que encapsula operaciones de Folium.
+    Utilidad que encapsula operaciones de Folium.
     Reduce código duplicado entre controladores.
     """
     
@@ -40,9 +41,9 @@ class MapService:
             Mapa de Folium configurado
         """
         if center is None:
-            center = MapService.DEFAULT_CENTER
+            center = MapUtils.DEFAULT_CENTER
         if zoom is None:
-            zoom = MapService.DEFAULT_ZOOM
+            zoom = MapUtils.DEFAULT_ZOOM
         
         return folium.Map(location=center, zoom_start=zoom)
     
@@ -67,7 +68,7 @@ class MapService:
         Returns:
             El mismo mapa con el marcador añadido
         """
-        icon_style = MapService.ICON_STYLES.get(icon_type, MapService.ICON_STYLES['waypoint'])
+        icon_style = MapUtils.ICON_STYLES.get(icon_type, MapUtils.ICON_STYLES['waypoint'])
         
         folium.Marker(
             location=coords,
@@ -161,15 +162,15 @@ class MapService:
         """
         # Determinar centro
         if center is None:
-            center = origin_coords if origin_coords else MapService.DEFAULT_CENTER
+            center = origin_coords if origin_coords else MapUtils.DEFAULT_CENTER
         
         # Crear mapa base
-        mapa = MapService.create_base_map(center=center, zoom=12)
+        mapa = MapUtils.create_base_map(center=center, zoom=12)
         all_points = []
         
         # Añadir marcador de origen
         if origin_coords:
-            MapService.add_marker(
+            MapUtils.add_marker(
                 mapa,
                 coords=origin_coords,
                 popup_text=f"INICIO: {origin_label}",
@@ -182,7 +183,7 @@ class MapService:
             is_last = (i == len(waypoints) - 1)
             icon_type = 'destination' if is_last else 'waypoint'
             
-            MapService.add_marker(
+            MapUtils.add_marker(
                 mapa,
                 coords=waypoint['coords'],
                 popup_text=f"Parada {waypoint.get('orden', i+1)}: {waypoint['direccion']}",
@@ -192,8 +193,8 @@ class MapService:
         
         # Añadir línea y ajustar zoom
         if len(all_points) > 1:
-            MapService.add_polyline(mapa, all_points)
-            MapService.fit_bounds(mapa, all_points)
+            MapUtils.add_polyline(mapa, all_points)
+            MapUtils.fit_bounds(mapa, all_points)
         
         return mapa
     
@@ -217,10 +218,10 @@ class MapService:
             Mapa completo con empresa y vehículos
         """
         # Crear mapa base
-        mapa = MapService.create_base_map(center=company_coords, zoom=MapService.DEFAULT_ZOOM)
+        mapa = MapUtils.create_base_map(center=company_coords, zoom=MapUtils.DEFAULT_ZOOM)
         
         # Añadir marcador de empresa
-        MapService.add_marker(
+        MapUtils.add_marker(
             mapa,
             coords=company_coords,
             popup_text=f"<b>Centro de Operaciones</b><br>{company_name}",
@@ -241,7 +242,7 @@ class MapService:
                 f"<small>{vehicle.get('timestamp', '')}</small>"
             )
             
-            MapService.add_marker(
+            MapUtils.add_marker(
                 mapa,
                 coords=coords,
                 popup_text=popup_text,
@@ -251,6 +252,6 @@ class MapService:
         
         # Ajustar zoom si hay varios puntos
         if fit_to_bounds and len(all_coords) > 1:
-            MapService.fit_bounds(mapa, all_coords)
+            MapUtils.fit_bounds(mapa, all_coords)
         
         return mapa

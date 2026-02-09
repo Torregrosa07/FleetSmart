@@ -1,127 +1,112 @@
-import folium
-import io
+"""
+CommandCenterController - Versión refactorizada
+
+RESPONSABILIDADES:
+- Manejo de UI (mapa en tiempo real)
+- Usar MapUtils para crear el mapa
+- Usar CommandCenterService para datos y listener
+- Lógica de zoom inteligente
+
+Código simple y claro.
+"""
 from PySide6.QtWidgets import QWidget
-from PySide6.QtCore import Signal, QObject
+
 from app.views.CommandCenterPage_ui import Ui_CommandCenterPage
-from app.repositories.localizacionGPS_repository import LocalizacionGPSRepository
-
-
-class FirebaseListenerBridge(QObject):
-    ubicacion_actualizada = Signal()
+from app.services.command_center_service import CommandCenterService
+from app.utils.map_utils import MapUtils
 
 
 class CommandCenterController(QWidget, Ui_CommandCenterPage):
+    """
+    Centro de Comandos: muestra vehículos en tiempo real en un mapa.
     
-    def __init__(self,coords_iniciales = None):
+    Características:
+    - Listener de Firebase para actualizaciones GPS
+    - Zoom inteligente (solo ajusta la primera vez)
+    - Usa MapUtils para crear mapas
+    - Usa CommandCenterService para datos
+    """
+    
+    def __init__(self, coords_iniciales=None):
         super().__init__()
         self.setupUi(self)
         
-        self.repo = LocalizacionGPSRepository()
+        # Servicio de lógica de negocio
+        self.service = CommandCenterService()
         
-        # Coordenadas por defecto (Madrid)
+        # Coordenadas de la empresa
         if coords_iniciales:
             self.empresa_coords = coords_iniciales
         else:
-            self.empresa_coords = [40.4168, -3.7038] # Madrid por defecto
+            self.empresa_coords = CommandCenterService.COORDS_DEFAULT
         
-        self.es_primera_carga = True 
+        # Control de zoom inteligente
+        self.es_primera_carga = True
         
-        self.listener_activo = None
-        self.bridge = FirebaseListenerBridge()
-        self.bridge.ubicacion_actualizada.connect(self.actualizar_mapa)
-        
+        # Conectar botones
         if hasattr(self, 'btnActualizar'):
             self.btnActualizar.clicked.connect(self.actualizar_mapa)
         
         # Inicializar
-        self.actualizar_mapa()  
-        self.iniciar_listener()
-
+        self.actualizar_mapa()
+        self.service.iniciar_listener(self.actualizar_mapa)
+    
+    # =========================================================================
+    # ACTUALIZACIÓN DE EMPRESA
+    # =========================================================================
+    
     def actualizar_ubicacion_empresa(self, nuevas_coords):
         """
         Recibe [lat, lon] desde SettingsController y actualiza el mapa.
-        Al cambiar la sede, permitimos que se re-ajuste el zoom una vez.
+        Al cambiar la sede, permite que se re-ajuste el zoom una vez.
         """
         if nuevas_coords:
             self.empresa_coords = nuevas_coords
-            self.es_primera_carga = True # Permitimos re-centrar una vez
+            self.es_primera_carga = True
             self.actualizar_mapa()
-
-    def iniciar_listener(self):
-        try:
-            def on_cambio(event):
-                self.bridge.ubicacion_actualizada.emit()
-            
-            self.listener_activo = self.repo.crear_listener(on_cambio)
-        except Exception as e:
-            print(f"Error iniciando listener: {e}")
     
-    def detener_listener(self):
-        if self.listener_activo:
-            try:
-                self.listener_activo.close()
-                print("Listener GPS detenido")
-            except Exception as e:
-                print(f"Error deteniendo listener: {e}")
-            finally:
-                self.listener_activo = None
+    # =========================================================================
+    # MAPA
+    # =========================================================================
     
-    def mostrar_mapa(self, mapa):
-        datos = io.BytesIO()
-        mapa.save(datos, close_file=False)
-        if hasattr(self, 'webMap'):
-            self.webMap.setHtml(datos.getvalue().decode())
-
     def actualizar_mapa(self):
         """
-        Dibuja el mapa.
-        SOLUCIÓN ZOOM: 'fit_bounds' solo se ejecuta si self.es_primera_carga es True.
+        Dibuja el mapa con empresa y vehículos activos.
+        
+        ZOOM INTELIGENTE:
+        - Primera carga: fit_bounds para mostrar todos los puntos
+        - Siguientes actualizaciones: mantiene el zoom actual
+          para no interrumpir si el usuario está haciendo zoom manual
         """
-        # 1. Obtener conductores
-        ubicaciones = self.repo.obtener_ubicaciones_activas()
+        # 1. Obtener ubicaciones del servicio
+        ubicaciones = self.service.obtener_ubicaciones_activas()
         
-        # 2. Configurar Mapa Base
-        # Usamos siempre la empresa como centro estable para actualizaciones suaves
-        mapa = folium.Map(location=self.empresa_coords, zoom_start=6)
+        # 2. Convertir al formato que necesita MapUtils
+        vehiculos = self.service.preparar_datos_mapa(ubicaciones)
         
-        # 3. DIBUJAR EMPRESA
-        folium.Marker(
-            location=self.empresa_coords,
-            popup="<b>Centro de Operaciones</b><br>FleetSmart HQ",
-            icon=folium.Icon(color="blue", icon="building", prefix="fa")
-        ).add_to(mapa)
-
-        # 4. DIBUJAR CONDUCTORES
-        coordenadas_para_ajuste = [self.empresa_coords]
+        # 3. Crear mapa usando MapUtils
+        # Pasamos fit_to_bounds solo en primera carga
+        mapa = MapUtils.create_fleet_map(
+            company_coords=self.empresa_coords,
+            company_name="FleetSmart HQ",
+            vehicles=vehiculos,
+            fit_to_bounds=self.es_primera_carga
+        )
         
-        for ubicacion in ubicaciones:
-            coords = [ubicacion.latitud, ubicacion.longitud]
-            coordenadas_para_ajuste.append(coords)
-            
-            popup_text = (
-                f"<b>Vehículo:</b> {ubicacion.matricula_vehiculo}<br>"
-                f"<b>Conductor:</b> {ubicacion.nombre_conductor}<br>"
-                f"<b>Ruta:</b> {ubicacion.nombre_ruta}<br>"
-                f"<small>{ubicacion.timestamp}</small>"
-            )
-            
-            folium.Marker(
-                location=coords,
-                popup=popup_text,
-                tooltip=ubicacion.matricula_vehiculo,
-                icon=folium.Icon(color="green", icon="truck", prefix="fa")
-            ).add_to(mapa)
+        # 4. Desactivar fit_bounds para futuras actualizaciones
+        if self.es_primera_carga:
+            self.es_primera_carga = False
         
-        # 5. AJUSTE DE ZOOM INTELIGENTE
-        # Solo ajustamos el encuadre automáticamente la primera vez.
-        # Las siguientes veces, mantenemos el zoom por defecto del mapa base
-        # para no interrumpir al usuario si está haciendo zoom manual.
-        if self.es_primera_carga and len(coordenadas_para_ajuste) > 1:
-            mapa.fit_bounds(coordenadas_para_ajuste)
-            self.es_primera_carga = False # Desactivar para futuras actualizaciones
-        
-        self.mostrar_mapa(mapa)
+        # 5. Renderizar mapa
+        html = MapUtils.render_to_html(mapa)
+        if hasattr(self, 'webMap'):
+            self.webMap.setHtml(html)
+    
+    # =========================================================================
+    # LIMPIEZA AL CERRAR
+    # =========================================================================
     
     def closeEvent(self, event):
-        self.detener_listener()
+        """Detener listener al cerrar"""
+        self.service.detener_listener()
         event.accept()

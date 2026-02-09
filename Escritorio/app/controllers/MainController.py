@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QMainWindow
 from PySide6.QtCore import QDate, QLocale
 from app.views.MainWindow_ui import Ui_MainWindow
 from app.controllers.CommandCenterController import CommandCenterController
-from app.services.language_service import LanguageService
+from app.utils.language_utils import LanguageService
 from app.controllers.VehiclesController import VehiclesController
 from app.controllers.ConductoresController import ConductoresController
 from app.controllers.SettingsController import SettingsController
