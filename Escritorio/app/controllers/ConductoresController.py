@@ -14,6 +14,7 @@ from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QHeaderVie
 from app.views.ConductoresWidget_ui import Ui_ConductoresWidget
 from app.controllers.ConductorDialogController import ConductorDialogController
 from app.services.conductores_service import ConductoresService
+from app.utils.language_utils import LanguageService
 
 
 class ConductoresController(QWidget, Ui_ConductoresWidget):
@@ -57,6 +58,32 @@ class ConductoresController(QWidget, Ui_ConductoresWidget):
         self.btnNuevoConductor.clicked.connect(self.crear_conductor)
         self.btnBorrar.clicked.connect(self.borrar_conductor)
         self.btnEditar.clicked.connect(self.editar_conductor)
+
+    # =========================================================================
+    # TRADUCCION DE INTERFAZ
+    # =========================================================================
+
+    def actualizar_idioma(self, idioma):
+        """Traduce la interfaz de conductores"""
+        self.label_4.setText(LanguageService.get_text("drivers", idioma))
+        self.btnNuevoConductor.setText("+ " + LanguageService.get_text("new", idioma))
+        self.btnEditar.setText(LanguageService.get_text("edit", idioma))
+        self.btnBorrar.setText(LanguageService.get_text("delete", idioma))
+
+        claves_columnas = {
+            0: "name",
+            1: "dni",
+            2: "license",
+            3: "status",
+            4: "email",
+            5: "phone"
+        }
+
+        for col, clave in claves_columnas.items():
+            texto = LanguageService.get_text(clave, idioma)
+            item = self.tablaCondcutores.horizontalHeaderItem(col)
+            if item:
+                item.setText(texto)
     
     # =========================================================================
     # GESTIÓN DE TABLA

@@ -6,6 +6,7 @@ from app.models.ruta import Ruta
 from app.services.rutas_service import RutasService
 from app.utils.geocoding_utils import GeocodingUtils
 from app.utils.map_utils import MapUtils
+from app.utils.language_utils import LanguageService
 
 
 class RutasController(QWidget, Ui_RutasWidget):
@@ -94,8 +95,45 @@ class RutasController(QWidget, Ui_RutasWidget):
         if hasattr(self, 'btnCancelar'):
             self.btnCancelar.clicked.connect(self.cancelar_edicion)
     
+
+
     # =========================================================================
-    # GESTIÓN DE TABLA
+    # TRADUCCION DE INTERFAZ
+    # =========================================================================
+
+    def actualizar_idioma(self, idioma):
+        """Traduce la interfaz de rutas"""
+        # Traducir botones
+        self.btnGuardarRuta.setText(LanguageService.get_text("save_route", idioma))
+        self.btnAgregarParada.setText(LanguageService.get_text("add_stop", idioma))
+        self.btnEliminarParada.setText(LanguageService.get_text("delete_stop", idioma))
+        
+        if hasattr(self, 'btnEditarRuta'):
+            self.btnEditarRuta.setText(LanguageService.get_text("edit", idioma))
+        if hasattr(self, 'btnEliminarRuta'):
+            self.btnEliminarRuta.setText(LanguageService.get_text("delete", idioma))
+        if hasattr(self, 'btnNuevaRuta'):
+            self.btnNuevaRuta.setText(LanguageService.get_text("new_route", idioma))
+        if hasattr(self, 'btnCancelar'):
+            self.btnCancelar.setText(LanguageService.get_text("cancel", idioma))
+
+        # Traducir cabeceras de la tabla
+        if hasattr(self, 'tablaRutas'):
+            claves_columnas = {
+                0: "name",
+                1: "origin",
+                2: "destination",
+                3: "date",
+                4: "status",
+                5: "num_stops"
+            }
+            for col, clave in claves_columnas.items():
+                texto = LanguageService.get_text(clave, idioma)
+                item = self.tablaRutas.horizontalHeaderItem(col)
+                if item:
+                    item.setText(texto)
+    # =========================================================================
+    # GESTION DE TABLA
     # =========================================================================
     
     def cargar_tabla(self):

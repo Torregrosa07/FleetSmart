@@ -5,6 +5,8 @@ from PySide6.QtCore import QDateTime, Signal
 from app.views.AsignacionWidget_ui import Ui_AsignacionWidget
 from app.models.asignacion import Asignacion
 from app.services.asignaciones_service import AsignacionesService
+from app.services.notificaciones_api_service import notificaciones_api
+from app.utils.language_utils import LanguageService
 
 
 class AsignacionController(QWidget, Ui_AsignacionWidget):
@@ -313,9 +315,18 @@ class AsignacionController(QWidget, Ui_AsignacionWidget):
         if exito:
             # Emitir señal
             self.asignacion_creada.emit(asignacion_creada)
-            
-            QMessageBox.information(self, "Éxito", "Ruta asignada correctamente.")
-            
+
+            # Enviar notificacion push al conductor
+            notif_ok, notif_msg = notificaciones_api.notificar_ruta_asignada(
+                id_conductor, id_ruta
+            )
+            if notif_ok:
+                QMessageBox.information(self, "Exito", "Ruta asignada correctamente.
+Notificacion enviada al conductor.")
+            else:
+                QMessageBox.information(self, "Exito", f"Ruta asignada correctamente.
+(Notificacion: {notif_msg})")
+
             # Actualizar tabla
             self.cargar_tabla()
         else:

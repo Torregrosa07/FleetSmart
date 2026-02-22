@@ -76,12 +76,20 @@ class MainWindowController(QMainWindow, Ui_MainWindow):
         self.btnIncidents.setText(LanguageService.get_text("incidents", idioma))
         self.btnSettings.setText(LanguageService.get_text("settings", idioma))
         
+        # Actualizar titulo de pagina segun vista actual
         idx = self.stackContent.currentIndex()
         if idx == self.idx_mapa:
             self.lblPageTitle.setText(LanguageService.get_text("command_center", idioma))
         elif idx == self.idx_vehiculos:
-            self.lblPageTitle.setText(LanguageService.get_text("vehicles", idioma))
-        # ... etc
+            self.lblPageTitle.setText(LanguageService.get_text("vehicle_management", idioma))
+        elif idx == self.idx_conductores:
+            self.lblPageTitle.setText(LanguageService.get_text("driver_management", idioma))
+        elif idx == self.idx_rutas:
+            self.lblPageTitle.setText(LanguageService.get_text("route_creation", idioma))
+        elif idx == self.idx_asignaciones:
+            self.lblPageTitle.setText(LanguageService.get_text("assignment_management", idioma))
+        elif idx == self.idx_incidencias:
+            self.lblPageTitle.setText(LanguageService.get_text("incident_management", idioma))
         
         # 3. PROPAGAR A LAS VISTAS HIJAS
         # Verificamos si tienen el método 'actualizar_idioma' antes de llamarlo
@@ -172,31 +180,37 @@ class MainWindowController(QMainWindow, Ui_MainWindow):
 
     def ir_a_mapa(self):
         self.stackContent.setCurrentIndex(self.idx_mapa)
-        self.lblPageTitle.setText("Centro de Mando")
+        idioma = self.app_state.get("language", "Espanol")
+        self.lblPageTitle.setText(LanguageService.get_text("command_center", idioma))
         
 
     def ir_a_vehiculos(self):
         self.stackContent.setCurrentIndex(self.idx_vehiculos)
-        self.lblPageTitle.setText("Gestión de Vehículos")
+        idioma = self.app_state.get("language", "Espanol")
+        self.lblPageTitle.setText(LanguageService.get_text("vehicle_management", idioma))
     
         
     def ir_a_conductores(self):
         self.stackContent.setCurrentIndex(self.idx_conductores)
-        self.lblPageTitle.setText("Gestión de Conductores")
+        idioma = self.app_state.get("language", "Espanol")
+        self.lblPageTitle.setText(LanguageService.get_text("driver_management", idioma))
         
         
     def ir_a_rutas(self):
         self.stackContent.setCurrentIndex(self.idx_rutas)
-        self.lblPageTitle.setText("Creación de Rutas")
+        idioma = self.app_state.get("language", "Espanol")
+        self.lblPageTitle.setText(LanguageService.get_text("route_creation", idioma))
         
         
     def ir_a_asignaciones(self):
         self.stackContent.setCurrentIndex(self.idx_asignaciones)
-        self.lblPageTitle.setText("Gestión de Conductores")
+        idioma = self.app_state.get("language", "Espanol")
+        self.lblPageTitle.setText(LanguageService.get_text("assignment_management", idioma))
         
     def ir_a_incidencias(self):
         self.stackContent.setCurrentIndex(self.idx_incidencias)
-        self.lblPageTitle.setText("Incidencias")
+        idioma = self.app_state.get("language", "Espanol")
+        self.lblPageTitle.setText(LanguageService.get_text("incident_management", idioma))
         
         
     def abrir_ajustes(self):

@@ -4,6 +4,8 @@ from PySide6.QtCore import Signal
 from app.views.IncidenciasWidget_ui import Ui_IncidenciasWidget
 from app.services.incidencias_service import IncidenciasService
 from app.controllers.IncidenciaDialogController import IncidenciaDialogController
+from app.services.notificaciones_api_service import notificaciones_api
+from app.utils.language_utils import LanguageService
 
 class IncidenciasController(QWidget, Ui_IncidenciasWidget):
     
@@ -47,8 +49,37 @@ class IncidenciasController(QWidget, Ui_IncidenciasWidget):
         self.btnEliminar.clicked.connect(self.eliminar_incidencia)
         self.cbFiltroEstado.currentTextChanged.connect(self.aplicar_filtro)
     
+
+
     # =========================================================================
-    # GESTIÓN DE TABLA
+    # TRADUCCION DE INTERFAZ
+    # =========================================================================
+
+    def actualizar_idioma(self, idioma):
+        """Traduce la interfaz de incidencias"""
+        # Traducir botones
+        self.btnNuevaIncidencia.setText("+ " + LanguageService.get_text("new", idioma))
+        self.btnRecargar.setText(LanguageService.get_text("refresh", idioma))
+        self.btnCambiarEstado.setText(LanguageService.get_text("change_status", idioma))
+        self.btnEliminar.setText(LanguageService.get_text("delete", idioma))
+
+        # Traducir cabeceras de la tabla
+        claves_columnas = {
+            0: "date",
+            1: "time",
+            2: "license_plate",
+            3: "type",
+            4: "status",
+            5: "description",
+            6: "driver"
+        }
+        for col, clave in claves_columnas.items():
+            texto = LanguageService.get_text(clave, idioma)
+            item = self.tablaIncidencias.horizontalHeaderItem(col)
+            if item:
+                item.setText(texto)
+    # =========================================================================
+    # GESTION DE TABLA
     # =========================================================================
     
     def cargar_tabla(self):
@@ -314,6 +345,9 @@ class IncidenciasController(QWidget, Ui_IncidenciasWidget):
             # Emitir señales
             self.incidencia_actualizada.emit(incidencia.id_incidencia)
             self.incidencia_estado_cambiado.emit(incidencia.id_incidencia, estado_actualizado)
+            
+            # Enviar notificacion al conductor
+            notificaciones_api.notificar_incidencia_actualizada(incidencia.id_incidencia)
             
             QMessageBox.information(self, "Actualizado", mensaje)
         else:

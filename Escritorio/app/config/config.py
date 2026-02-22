@@ -4,6 +4,14 @@ import firebase_admin
 from firebase_admin import credentials, db as admin_db
 import os
 
+
+# ============================================================================
+# API DE NOTIFICACIONES
+# ============================================================================
+
+API_BASE_URL = "http://localhost:8000"
+API_NOTIFICACIONES_URL = f"{API_BASE_URL}/api/notificaciones"
+
 # ============================================================================
 # PYREBASE - Para Auth, CRUD básico, la mayoría del proyecto
 # ============================================================================
