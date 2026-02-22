@@ -321,11 +321,9 @@ class AsignacionController(QWidget, Ui_AsignacionWidget):
                 id_conductor, id_ruta
             )
             if notif_ok:
-                QMessageBox.information(self, "Exito", "Ruta asignada correctamente.
-Notificacion enviada al conductor.")
+                QMessageBox.information(self, "Exito", "Ruta asignada correctamente. \nNotificacion enviada al conductor.")
             else:
-                QMessageBox.information(self, "Exito", f"Ruta asignada correctamente.
-(Notificacion: {notif_msg})")
+                QMessageBox.information(self, "Exito", f"Ruta asignada correctamente. \n(Notificacion: {notif_msg})")
 
             # Actualizar tabla
             self.cargar_tabla()

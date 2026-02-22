@@ -10,36 +10,33 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
 import com.fleetsmart.conductor.data.FirebaseRepository
 import com.fleetsmart.conductor.data.LocationService
 import com.fleetsmart.conductor.model.ConductorData
 import com.fleetsmart.conductor.model.UbicacionGPS
-import com.fleetsmart.conductor.ui.MainScreen
-import com.fleetsmart.conductor.ui.theme.FleetSmartConductorTheme
+import com.fleetsmart.conductor.ui.navigation.FleetDriverApp
+import com.fleetsmart.conductor.ui.theme.MockUpsFleetSmartMovilTheme
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.appcompat.app.AppCompatActivity
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
 
     private lateinit var locationService: LocationService
     private lateinit var firebaseRepo: FirebaseRepository
 
-    // Estados para la UI
-    private var latitud by mutableStateOf<Double?>(null)
-    private var longitud by mutableStateOf<Double?>(null)
-    private var enviando by mutableStateOf(false)
-    private var ultimaActualizacion by mutableStateOf("")
+    // Estado interno para saber si ya estamos enviando ubicación
+    private var enviando = false
 
     companion object {
         private const val TAG = "MainActivity"
     }
 
-    // Launcher para pedir permisos
+    // Launcher para pedir permisos de ubicación al usuario
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -50,56 +47,49 @@ class MainActivity : ComponentActivity() {
             Log.d(TAG, "✅ Permisos concedidos por el usuario")
             iniciarEnvioUbicaciones()
         } else {
-            Log.e(TAG, "❌ Permisos denegados por el usuario")
-            Toast.makeText(
-                this,
-                "Se necesitan permisos de ubicación para usar la app",
-                Toast.LENGTH_LONG
-            ).show()
+            Log.e(TAG, "❌ Permisos denegados")
+            Toast.makeText(this, "Se necesitan permisos de ubicación para realizar la ruta", Toast.LENGTH_LONG).show()
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Inicializar servicios
+        // Inicializar servicios ligeros
         locationService = LocationService(this)
         firebaseRepo = FirebaseRepository()
 
-        // Configurar UI
+        // 🔧 1. MOVER OSMDROID A UN HILO SECUNDARIO PARA QUE NO CONGELE LA PANTALLA
+        lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            org.osmdroid.config.Configuration.getInstance().load(
+                applicationContext,
+                getSharedPreferences("osmdroid", android.content.Context.MODE_PRIVATE)
+            )
+        }
+
         setContent {
-            FleetSmartConductorTheme {
+            // USAMOS TU TEMA AQUÍ
+            MockUpsFleetSmartMovilTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    color = com.fleetsmart.conductor.ui.theme.AppColors.Background
                 ) {
-                    MainScreen(
-                        conductor = ConductorData.NOMBRE_CONDUCTOR,
-                        vehiculo = ConductorData.MATRICULA_VEHICULO,
-                        ruta = ConductorData.NOMBRE_RUTA,
-                        latitud = latitud,
-                        longitud = longitud,
-                        enviando = enviando,
-                        ultimaActualizacion = ultimaActualizacion,
-                        onDetener = { detenerEnvioUbicaciones() }
+                    FleetDriverApp(
+                        onIniciarRuta = { solicitarPermisosYArrancar() },
+                        onDetenerRuta = { detenerEnvioUbicaciones() }
                     )
                 }
             }
         }
-
-        // Pedir permisos y empezar
-        solicitarPermisos()
     }
 
     /**
-     * Solicita permisos de ubicación al usuario.
+     * Solicitado por Navigation.kt cuando el usuario hace clic en "Iniciar Ruta"
      */
-    private fun solicitarPermisos() {
+    private fun solicitarPermisosYArrancar() {
         if (locationService.hasLocationPermission()) {
-            Log.d(TAG, "✅ Ya tenía permisos, iniciando...")
             iniciarEnvioUbicaciones()
         } else {
-            Log.d(TAG, "⚠️ No tiene permisos, solicitando...")
             requestPermissionLauncher.launch(
                 arrayOf(
                     Manifest.permission.ACCESS_FINE_LOCATION,
@@ -110,32 +100,20 @@ class MainActivity : ComponentActivity() {
     }
 
     /**
-     * Inicia el servicio de envío de ubicaciones a Firebase.
+     * Inicia el flujo de GPS y lo manda a Firebase en segundo plano
      */
     private fun iniciarEnvioUbicaciones() {
         if (enviando) return
         enviando = true
-        Log.d(TAG, "▶️ Iniciando flujo de ubicaciones...")
+        Toast.makeText(this, "Iniciando ruta y GPS...", Toast.LENGTH_SHORT).show()
 
         lifecycleScope.launch {
             locationService.getLocationUpdates(intervalMillis = 5000)
                 .catch { e ->
-                    Log.e(TAG, "❌ Error en Flow de ubicación: ${e.message}")
-                    Toast.makeText(
-                        this@MainActivity,
-                        "Error obteniendo ubicación: ${e.message}",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    Log.e(TAG, "Error en GPS: ${e.message}")
                     enviando = false
                 }
                 .collect { location ->
-                    // Nueva ubicación recibida
-                    Log.d(TAG, "📍 UI recibiendo ubicación: ${location.latitude}, ${location.longitude}")
-
-                    latitud = location.latitude
-                    longitud = location.longitude
-
-                    // Crear objeto para enviar a Firebase
                     val ubicacion = UbicacionGPS(
                         id_asignacion = ConductorData.ID_ASIGNACION,
                         latitud = location.latitude,
@@ -145,53 +123,33 @@ class MainActivity : ComponentActivity() {
                         matricula_vehiculo = ConductorData.MATRICULA_VEHICULO,
                         nombre_ruta = ConductorData.NOMBRE_RUTA
                     )
-
-                    // Enviar a Firebase
-                    val enviado = firebaseRepo.enviarUbicacion(ubicacion)
-
-                    if (enviado) {
-                        ultimaActualizacion = obtenerHoraActual()
-                    } else {
-                        Log.w(TAG, "⚠️ Fallo al enviar a Firebase (revisar auth o reglas)")
-                    }
+                    // Enviar a Firebase de forma transparente (sin molestar a la UI)
+                    firebaseRepo.enviarUbicacion(ubicacion)
                 }
         }
     }
 
     /**
-     * Detiene el envío de ubicaciones.
+     * Solicitado por Navigation.kt cuando el usuario hace clic en "Finalizar" o "Volver"
      */
     private fun detenerEnvioUbicaciones() {
-        Log.d(TAG, "⏹️ Deteniendo envío...")
+        if (!enviando) return
         enviando = false
+        Toast.makeText(this, "Ruta y GPS detenidos", Toast.LENGTH_SHORT).show()
 
-        // Limpiar ubicación en Firebase
+        // Borra el rastro de la BD cuando el conductor termina
         lifecycleScope.launch {
             firebaseRepo.limpiarUbicacion(ConductorData.ID_ASIGNACION)
         }
-
-        Toast.makeText(this, "Envío de ubicación detenido", Toast.LENGTH_SHORT).show()
     }
 
-    /**
-     * Obtiene el timestamp actual en formato ISO.
-     */
     private fun obtenerTimestamp(): String {
         val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
         return sdf.format(Date())
     }
 
-    /**
-     * Obtiene la hora actual en formato legible.
-     */
-    private fun obtenerHoraActual(): String {
-        val sdf = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
-        return sdf.format(Date())
-    }
-
     override fun onDestroy() {
         super.onDestroy()
-        // Limpiar ubicación al cerrar la app
         if (enviando) {
             detenerEnvioUbicaciones()
         }
