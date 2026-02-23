@@ -19,7 +19,6 @@ class MainWindowController(QMainWindow, Ui_MainWindow):
         self.app_state = app_state
         self.settings_service = settings_service
         
-        
         # 1. Inicializar conexión a BD (para pasarla a los hijos)
         self.firebase = pyrebase.initialize_app(FIREBASE_CONFIG)
         self.db = self.firebase.database()
@@ -34,12 +33,9 @@ class MainWindowController(QMainWindow, Ui_MainWindow):
         self.vista_asignaciones = AsignacionController(self.db)
         self.vista_incidencias = IncidenciasController(self.db, self.app_state)
         
-        
         self.conectar_senales_vistas()
-        
 
-        # 3. Añadirlas al Stacked Widget (el contenedor cambiante)
-        # OJO: Guardamos el índice que nos devuelve addWidget para usarlo luego
+        # 3. Añadirlas al Stacked Widget
         self.idx_mapa = self.stackContent.addWidget(self.vista_mapa)
         self.idx_vehiculos = self.stackContent.addWidget(self.vista_vehiculos)
         self.idx_conductores = self.stackContent.addWidget(self.vista_conductores)
@@ -57,9 +53,7 @@ class MainWindowController(QMainWindow, Ui_MainWindow):
         self.btnIncidents.clicked.connect(self.ir_a_incidencias)
         
         self.actualizar_fecha()
-        
         self.ir_a_mapa()
-        
         self.actualizar_textos()
         
         
@@ -67,7 +61,7 @@ class MainWindowController(QMainWindow, Ui_MainWindow):
         """Actualiza los textos de la ventana principal y propaga a las hijas"""
         idioma = self.app_state.get("language", "Español")
         
-        # 1. Actualizar textos del Menú Lateral (Main Window)
+        # 1. Actualizar textos del Menú Lateral
         self.btnCommandCenter.setText(LanguageService.get_text("command_center", idioma))
         self.btnVehicles.setText(LanguageService.get_text("vehicles", idioma))
         self.btnDrivers.setText(LanguageService.get_text("drivers", idioma))
@@ -91,24 +85,17 @@ class MainWindowController(QMainWindow, Ui_MainWindow):
         elif idx == self.idx_incidencias:
             self.lblPageTitle.setText(LanguageService.get_text("incident_management", idioma))
         
-        # 3. PROPAGAR A LAS VISTAS HIJAS
-        # Verificamos si tienen el método 'actualizar_idioma' antes de llamarlo
+        # 2. Propagar a las vistas hijas
         if hasattr(self.vista_vehiculos, 'actualizar_idioma'):
             self.vista_vehiculos.actualizar_idioma(idioma)
-            
         if hasattr(self.vista_conductores, 'actualizar_idioma'):
             self.vista_conductores.actualizar_idioma(idioma)
-            
         if hasattr(self.vista_rutas, 'actualizar_idioma'):
             self.vista_rutas.actualizar_idioma(idioma)
-            
         if hasattr(self.vista_incidencias, 'actualizar_idioma'):
             self.vista_incidencias.actualizar_idioma(idioma)
-            
         if hasattr(self.vista_asignaciones, 'actualizar_idioma'):
             self.vista_asignaciones.actualizar_idioma(idioma)
-            
-            
         
         
     def actualizar_fecha(self):
@@ -120,133 +107,85 @@ class MainWindowController(QMainWindow, Ui_MainWindow):
     def conectar_senales_vistas(self):
         """Conecta señales entre las diferentes vistas para sincronización"""
         
-        # ========== SEÑALES DE RUTAS → ASIGNACIONES (ACTUALIZACIÓN SELECTIVA) ==========
-        # Cuando se crea una ruta: Añadir solo esa ruta al combo
+        # Rutas → Asignaciones
         self.vista_rutas.ruta_creada.connect(self.vista_asignaciones.agregar_ruta_a_combo)
-        
-        # Cuando se actualiza una ruta: Actualizar solo esa ruta en el combo
         self.vista_rutas.ruta_actualizada.connect(self.vista_asignaciones.actualizar_ruta_en_combo)
-        
-        # Cuando se elimina una ruta: Eliminar solo esa ruta del combo
         self.vista_rutas.ruta_eliminada.connect(self.vista_asignaciones.eliminar_ruta_de_combo)
-        
-        # Cuando cambia el estado de una ruta: Log opcional para debug
         self.vista_rutas.ruta_estado_cambiada.connect(self._on_ruta_estado_cambiada)
         
-        # ========== SEÑALES DE CONDUCTORES → ASIGNACIONES (ACTUALIZACIÓN SELECTIVA) ==========
-        # Cuando se crea un conductor: Añadir solo ese conductor al combo
+        # Conductores → Asignaciones
         self.vista_conductores.conductor_creado.connect(self.vista_asignaciones.agregar_conductor_a_combo)
-        
-        # Cuando se actualiza un conductor: Actualizar solo ese conductor en el combo
         self.vista_conductores.conductor_actualizado.connect(self.vista_asignaciones.actualizar_conductor_en_combo)
-        
-        # Cuando se elimina un conductor: Eliminar solo ese conductor del combo
         self.vista_conductores.conductor_eliminado.connect(self.vista_asignaciones.eliminar_conductor_de_combo)
-        
-        # Cuando cambia el estado de un conductor: Log opcional para debug
         self.vista_conductores.conductor_estado_cambiado.connect(self._on_conductor_estado_cambiado)
         
-        # ========== SEÑALES DE VEHÍCULOS → ASIGNACIONES (ACTUALIZACIÓN SELECTIVA) ==========
-        # Cuando se crea un vehículo: Añadir solo ese vehículo al combo (si está disponible)
+        # Vehículos → Asignaciones
         self.vista_vehiculos.vehiculo_creado.connect(self.vista_asignaciones.agregar_vehiculo_a_combo)
-        
-        # Cuando se actualiza un vehículo: Actualizar solo ese vehículo en el combo
         self.vista_vehiculos.vehiculo_actualizado.connect(self.vista_asignaciones.actualizar_vehiculo_en_combo)
-        
-        # Cuando se elimina un vehículo: Eliminar solo ese vehículo del combo
         self.vista_vehiculos.vehiculo_eliminado.connect(self.vista_asignaciones.eliminar_vehiculo_de_combo)
-        
-        # Cuando cambia el estado de un vehículo: Manejar disponibilidad en combo
         self.vista_vehiculos.vehiculo_estado_cambiado.connect(self.vista_asignaciones.manejar_cambio_estado_vehiculo)
-        
     
     def _on_ruta_estado_cambiada(self, id_ruta, nuevo_estado):
-        """Handler para debug de cambios de estado de rutas"""
         print(f"[MainController] Ruta {id_ruta} → {nuevo_estado}")
     
     def _on_conductor_estado_cambiado(self, id_conductor, nuevo_estado):
-        """
-        Método auxiliar que se ejecuta cuando un conductor cambia de estado.
-        Útil para debug o para actualizaciones futuras en otras vistas.
-        """
         print(f"[MainController] Conductor {id_conductor} cambió a estado: {nuevo_estado}")
     
     def _on_vehiculo_estado_cambiado(self, id_vehiculo, nuevo_estado):
-        """
-        Método auxiliar que se ejecuta cuando un vehículo cambia de estado.
-        Útil para debug o para actualizaciones futuras en otras vistas.
-        """
         print(f"[MainController] Vehículo {id_vehiculo} cambió a estado: {nuevo_estado}")
 
     def ir_a_mapa(self):
         self.stackContent.setCurrentIndex(self.idx_mapa)
-        idioma = self.app_state.get("language", "Espanol")
+        idioma = self.app_state.get("language", "Español")
         self.lblPageTitle.setText(LanguageService.get_text("command_center", idioma))
-        
 
     def ir_a_vehiculos(self):
         self.stackContent.setCurrentIndex(self.idx_vehiculos)
-        idioma = self.app_state.get("language", "Espanol")
+        idioma = self.app_state.get("language", "Español")
         self.lblPageTitle.setText(LanguageService.get_text("vehicle_management", idioma))
-    
         
     def ir_a_conductores(self):
         self.stackContent.setCurrentIndex(self.idx_conductores)
-        idioma = self.app_state.get("language", "Espanol")
+        idioma = self.app_state.get("language", "Español")
         self.lblPageTitle.setText(LanguageService.get_text("driver_management", idioma))
-        
         
     def ir_a_rutas(self):
         self.stackContent.setCurrentIndex(self.idx_rutas)
-        idioma = self.app_state.get("language", "Espanol")
+        idioma = self.app_state.get("language", "Español")
         self.lblPageTitle.setText(LanguageService.get_text("route_creation", idioma))
-        
         
     def ir_a_asignaciones(self):
         self.stackContent.setCurrentIndex(self.idx_asignaciones)
-        idioma = self.app_state.get("language", "Espanol")
+        idioma = self.app_state.get("language", "Español")
         self.lblPageTitle.setText(LanguageService.get_text("assignment_management", idioma))
         
     def ir_a_incidencias(self):
         self.stackContent.setCurrentIndex(self.idx_incidencias)
-        idioma = self.app_state.get("language", "Espanol")
+        idioma = self.app_state.get("language", "Español")
         self.lblPageTitle.setText(LanguageService.get_text("incident_management", idioma))
         
-        
     def abrir_ajustes(self):
-        # Abrimos diálogo pasando el estado actual
         dialog = SettingsController(self, self.app_state)
         
         if dialog.exec():
-            # Si guardó cambios, recuperamos los nuevos datos
             nuevos = dialog.nuevos_datos
-            
-            # 1. Actualizamos el estado global (memoria)
             self.app_state.update(nuevos)
             
-            # 2. GUARDAR EN DISCO (JSON)
             if self.settings_service:
                 self.settings_service.save()
             
-            # 3. Aplicamos cambios en el MAPA
             if nuevos.get("empresa_coords"):
                 self.vista_mapa.actualizar_ubicacion_empresa(nuevos["empresa_coords"])
             
             self.actualizar_textos()
                 
-                
     def closeEvent(self, event):
-    
-        
         # 1. Detener el listener del Mapa
         if hasattr(self, 'vista_mapa'):
             self.vista_mapa.detener_listener()
-            
+
         # 2. Detener threads de Rutas (si hubiera alguno corriendo)
         if hasattr(self, 'vista_rutas'):
-            # Si implementaste algún mecanismo de stop en Rutas, llámalo aquí.
-            # Normalmente QThread si no es daemon puede bloquear, pero tu GeocodingThread
-            # es corto. Aún así, es buena práctica:
             if hasattr(self.vista_rutas, 'geocoding_thread') and self.vista_rutas.geocoding_thread:
                 if self.vista_rutas.geocoding_thread.isRunning():
                     self.vista_rutas.geocoding_thread.terminate()

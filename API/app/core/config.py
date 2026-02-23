@@ -3,6 +3,10 @@ Configuración de la aplicación
 """
 from pydantic_settings import BaseSettings
 from typing import List
+import os
+
+# Ruta absoluta al directorio de la API (donde está este archivo config.py)
+_API_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 class Settings(BaseSettings):
@@ -18,7 +22,7 @@ class Settings(BaseSettings):
     
     ALLOWED_ORIGINS: List[str] = ["*"]
     
-    FIREBASE_CREDENTIALS_PATH: str = "./config/serviceAccountKey.json"
+    FIREBASE_CREDENTIALS_PATH: str = os.path.join(_API_DIR, "config", "serviceAccountKey.json")
     FIREBASE_DATABASE_URL: str = "https://fleetsmart-1-default-rtdb.europe-west1.firebasedatabase.app"
     
     class Config:

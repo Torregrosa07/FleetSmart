@@ -287,10 +287,14 @@ class IncidenciasController(QWidget, Ui_IncidenciasWidget):
         if exito:
             # Agregar a tabla
             self.agregar_a_tabla(incidencia_creada)
-            
+
             # Emitir señal
             self.incidencia_creada.emit(incidencia_creada)
-            
+
+            # Notificar al conductor si hay uno asignado
+            if incidencia_creada.id_conductor:
+                notificaciones_api.notificar_incidencia_asignada(incidencia_creada.id_incidencia)
+
             QMessageBox.information(
                 self,
                 "Incidencia Creada",
@@ -347,9 +351,11 @@ class IncidenciasController(QWidget, Ui_IncidenciasWidget):
             self.incidencia_estado_cambiado.emit(incidencia.id_incidencia, estado_actualizado)
             
             # Enviar notificacion al conductor
-            notificaciones_api.notificar_incidencia_actualizada(incidencia.id_incidencia)
-            
-            QMessageBox.information(self, "Actualizado", mensaje)
+            notif_ok, notif_msg = notificaciones_api.notificar_incidencia_actualizada(incidencia.id_incidencia)
+            if notif_ok:
+                QMessageBox.information(self, "Actualizado", f"{mensaje}\nNotificación enviada al conductor.")
+            else:
+                QMessageBox.information(self, "Actualizado", f"{mensaje}\n(Notificación: {notif_msg})")
         else:
             QMessageBox.critical(self, "Error", mensaje)
     

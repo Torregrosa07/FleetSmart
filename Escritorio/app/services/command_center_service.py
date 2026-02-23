@@ -32,6 +32,9 @@ class CommandCenterService:
         """
         Inicia el listener de Firebase para actualizaciones GPS en tiempo real.
         
+        
+        
+        
         Args:
             callback: Función a llamar cuando haya actualización
         """
@@ -57,6 +60,12 @@ class CommandCenterService:
                 print(f"Error deteniendo listener: {e}")
             finally:
                 self.listener_activo = None
+        
+        # Desconectar señal del bridge para evitar llamadas fantasma
+        try:
+            self.bridge.ubicacion_actualizada.disconnect()
+        except Exception:
+            pass
     
     # =========================================================================
     # CONSULTAS

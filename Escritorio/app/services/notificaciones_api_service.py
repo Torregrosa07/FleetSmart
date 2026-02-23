@@ -22,7 +22,7 @@ class NotificacionesAPIService:
     
     def __init__(self):
         self.base_url = API_NOTIFICACIONES_URL
-        self.timeout = 10  # segundos
+        self.timeout = 2  # segundos
     
     def _hacer_peticion(self, endpoint: str, datos: dict) -> Tuple[bool, str]:
         """
@@ -81,6 +81,21 @@ class NotificacionesAPIService:
         }
         return self._hacer_peticion("/ruta-asignada", datos)
     
+    def notificar_incidencia_asignada(self, id_incidencia: str) -> Tuple[bool, str]:
+        """
+        Notifica al conductor de una nueva incidencia registrada por el gestor.
+
+        Args:
+            id_incidencia: ID de la incidencia creada
+
+        Returns:
+            Tupla (exito, mensaje)
+        """
+        datos = {
+            "id_incidencia": id_incidencia
+        }
+        return self._hacer_peticion("/incidencia-asignada", datos)
+
     def notificar_incidencia_nueva(self, id_incidencia: str) -> Tuple[bool, str]:
         """
         Notifica al gestor que se ha creado una nueva incidencia.

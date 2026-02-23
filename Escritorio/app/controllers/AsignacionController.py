@@ -1,4 +1,6 @@
 
+import threading
+
 from PySide6.QtWidgets import QWidget, QMessageBox, QTableWidgetItem, QAbstractItemView, QHeaderView
 from PySide6.QtCore import QDateTime, Signal
 
@@ -317,13 +319,9 @@ class AsignacionController(QWidget, Ui_AsignacionWidget):
             self.asignacion_creada.emit(asignacion_creada)
 
             # Enviar notificacion push al conductor
-            notif_ok, notif_msg = notificaciones_api.notificar_ruta_asignada(
-                id_conductor, id_ruta
-            )
-            if notif_ok:
-                QMessageBox.information(self, "Exito", "Ruta asignada correctamente. \nNotificacion enviada al conductor.")
-            else:
-                QMessageBox.information(self, "Exito", f"Ruta asignada correctamente. \n(Notificacion: {notif_msg})")
+            notificaciones_api.notificar_ruta_asignada(id_conductor, id_ruta)
+
+            QMessageBox.information(self, "Exito", "Ruta asignada correctamente.")
 
             # Actualizar tabla
             self.cargar_tabla()

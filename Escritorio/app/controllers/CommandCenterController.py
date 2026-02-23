@@ -106,7 +106,16 @@ class CommandCenterController(QWidget, Ui_CommandCenterPage):
     # LIMPIEZA AL CERRAR
     # =========================================================================
     
+    def detener_listener(self):
+        """Detiene el listener de Firebase (llamado desde MainController)"""
+        self.service.detener_listener()
+
     def closeEvent(self, event):
         """Detener listener al cerrar"""
         self.service.detener_listener()
         event.accept()
+        
+        
+    def detener_listener(self):
+        """Permite que MainController detenga el listener externamente"""
+        self.service.detener_listener()

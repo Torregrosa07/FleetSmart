@@ -37,6 +37,18 @@ async def notificar_incidencia_nueva(request: IncidenciaRequest):
     return NotificacionResponse(**resultado)
 
 
+@router.post("/incidencia-asignada", response_model=NotificacionResponse)
+async def notificar_incidencia_asignada(request: IncidenciaRequest):
+    resultado = await notificacion_service.notificar_incidencia_asignada(
+        request.id_incidencia
+    )
+
+    if not resultado['success']:
+        raise HTTPException(status_code=400, detail=resultado)
+
+    return NotificacionResponse(**resultado)
+
+
 @router.post("/incidencia-actualizada", response_model=NotificacionResponse)
 async def notificar_incidencia_actualizada(request: IncidenciaRequest):
     resultado = await notificacion_service.notificar_incidencia_actualizada(
