@@ -17,8 +17,8 @@ class Settings(BaseSettings):
     VERSION: str = "1.0.0"
     
     API_HOST: str = "0.0.0.0"
-    API_PORT: int = 8000
-    DEBUG: bool = True
+    API_PORT: int = int(os.environ.get("PORT", 8000))  # Render asigna PORT dinámicamente
+    DEBUG: bool = False  # En producción siempre False
     
     ALLOWED_ORIGINS: List[str] = ["*"]
     

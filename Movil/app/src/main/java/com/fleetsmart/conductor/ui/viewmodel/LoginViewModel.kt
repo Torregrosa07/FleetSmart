@@ -2,7 +2,7 @@ package com.fleetsmart.conductor.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.delay
+import com.fleetsmart.conductor.data.SessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -40,9 +40,48 @@ class LoginViewModel : ViewModel() {
 
         viewModelScope.launch {
             _isLoading.value = true
-            delay(1500)
+            _error.value = null
+
+            val resultado = SessionManager.login(
+                email = _email.value.trim(),
+                password = _password.value
+            )
+
             _isLoading.value = false
-            onLoginSuccess()
+
+            resultado.fold(
+                onSuccess = {
+                    onLoginSuccess()
+                },
+                onFailure = { e ->
+                    _error.value = interpretarError(e)
+                }
+            )
+        }
+    }
+
+    /**
+     * Convierte errores de Firebase en mensajes amigables
+     */
+    private fun interpretarError(error: Throwable): String {
+        val mensaje = error.message ?: "Error desconocido"
+
+        return when {
+            "INVALID_LOGIN_CREDENTIALS" in mensaje ||
+                    "INVALID_EMAIL" in mensaje ||
+                    "WRONG_PASSWORD" in mensaje -> "Email o contraseña incorrectos"
+
+            "USER_NOT_FOUND" in mensaje -> "No existe una cuenta con este email"
+
+            "USER_DISABLED" in mensaje -> "Esta cuenta ha sido deshabilitada"
+
+            "TOO_MANY_REQUESTS" in mensaje -> "Demasiados intentos. Espera unos minutos"
+
+            "NETWORK" in mensaje.uppercase() -> "Error de conexión. Comprueba tu internet"
+
+            "No se encontró el perfil" in mensaje -> "Esta cuenta no tiene perfil de conductor"
+
+            else -> "Error al iniciar sesión: $mensaje"
         }
     }
 }

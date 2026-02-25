@@ -14,6 +14,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.fleetsmart.conductor.data.SessionManager
 import com.fleetsmart.conductor.ui.screens.*
 import com.fleetsmart.conductor.ui.theme.AppColors
 import androidx.compose.ui.unit.dp
@@ -37,7 +38,6 @@ fun FleetDriverApp(
     val currentDestination = navBackStackEntry?.destination
     val currentRoute = currentDestination?.route
 
-    // Función para navegar de forma segura
     fun navigateToTab(route: String) {
         navController.navigate(route) {
             popUpTo(navController.graph.findStartDestination().id) {
@@ -48,9 +48,16 @@ fun FleetDriverApp(
         }
     }
 
-    // LÓGICA DE VISIBILIDAD DE BARRAS
-    // Ocultamos barras en Login y en ActiveRoute
     val showBars = currentRoute != Screen.Login.route && currentRoute != Screen.ActiveRoute.route
+
+    // Obtener iniciales del conductor para el avatar
+    val conductor by SessionManager.conductorActual.collectAsState()
+    val iniciales = conductor?.nombre
+        ?.split(" ")
+        ?.take(2)
+        ?.mapNotNull { it.firstOrNull()?.uppercaseChar()?.toString() }
+        ?.joinToString("")
+        ?: "??"
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -72,7 +79,7 @@ fun FleetDriverApp(
                             ) {
                                 Box(contentAlignment = androidx.compose.ui.Alignment.Center) {
                                     Text(
-                                        text = "CM",
+                                        text = iniciales,
                                         style = MaterialTheme.typography.labelMedium,
                                         color = AppColors.PrimaryForeground
                                     )
@@ -141,12 +148,9 @@ fun NavigationGraph(
         startDestination = Screen.Login.route,
         modifier = modifier
     ) {
-        // --- PANTALLA DE LOGIN ---
         composable(Screen.Login.route) {
             LoginScreen(
                 onLoginSuccess = {
-                    // Al loguearse, vamos a rutas y borramos el login del historial (backstack)
-                    // para que al dar "atrás" no vuelva al login.
                     navController.navigate(Screen.Routes.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
@@ -157,7 +161,7 @@ fun NavigationGraph(
         composable(Screen.Routes.route) {
             MyRoutesScreen(
                 onStartRoute = { _ ->
-                    onIniciarRuta() // 🚀 INICIAMOS EL GPS AQUÍ
+                    onIniciarRuta()
                     navController.navigate(Screen.ActiveRoute.route)
                 }
             )
@@ -166,7 +170,7 @@ fun NavigationGraph(
         composable(Screen.ActiveRoute.route) {
             ActiveRouteScreen(
                 onBack = {
-                    onDetenerRuta() // 🛑 DETENEMOS EL GPS AL SALIR DE LA RUTA
+                    onDetenerRuta()
                     navController.popBackStack()
                 }
             )
@@ -177,7 +181,14 @@ fun NavigationGraph(
         }
 
         composable(Screen.Profile.route) {
-            ProfileScreen()
+            ProfileScreen(
+                onLogout = {
+                    SessionManager.logout()
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
         }
     }
 }

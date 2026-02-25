@@ -8,21 +8,37 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.fleetsmart.conductor.data.SessionManager
 import com.fleetsmart.conductor.ui.components.AppCard
 import com.fleetsmart.conductor.ui.theme.AppColors
 
 @Composable
-fun ProfileScreen() {
+fun ProfileScreen(
+    onLogout: () -> Unit = {}
+) {
+    val conductor by SessionManager.conductorActual.collectAsState()
+    val asignacion by SessionManager.asignacionActiva.collectAsState()
+
+    // Iniciales del conductor
+    val iniciales = conductor?.nombre
+        ?.split(" ")
+        ?.take(2)
+        ?.mapNotNull { it.firstOrNull()?.uppercaseChar()?.toString() }
+        ?.joinToString("")
+        ?: "??"
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        // Avatar and basic info
+        // Avatar e info básica
         item {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -35,7 +51,7 @@ fun ProfileScreen() {
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "CM",
+                        text = iniciales,
                         style = MaterialTheme.typography.headlineLarge,
                         color = AppColors.PrimaryForeground
                     )
@@ -44,7 +60,7 @@ fun ProfileScreen() {
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "Carlos Méndez",
+                    text = conductor?.nombre ?: "Cargando...",
                     style = MaterialTheme.typography.headlineMedium
                 )
                 Text(
@@ -55,35 +71,42 @@ fun ProfileScreen() {
             }
         }
 
-        // Info cards
+        // Tarjetas de info
         item {
             Column(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 ProfileInfoCard(
-                    label = "Licencia",
-                    value = "B12345678",
+                    label = "DNI",
+                    value = conductor?.dni ?: "-",
                     icon = Icons.Default.Badge
                 )
                 ProfileInfoCard(
+                    label = "Licencia",
+                    value = conductor?.licencia ?: "-",
+                    icon = Icons.Default.CreditCard
+                )
+                ProfileInfoCard(
                     label = "Teléfono",
-                    value = "+34 600 123 456",
+                    value = conductor?.telefono ?: "-",
                     icon = Icons.Default.Phone
                 )
                 ProfileInfoCard(
                     label = "Email",
-                    value = "carlos.mendez@fleet.com",
+                    value = conductor?.email ?: "-",
                     icon = Icons.Default.Email
                 )
                 ProfileInfoCard(
                     label = "Vehículo Asignado",
-                    value = "1234 ABC - Mercedes Sprinter",
+                    value = asignacion?.let {
+                        "${it.matriculaVehiculo} - ${it.nombreRuta}"
+                    } ?: "Sin asignación",
                     icon = Icons.Default.DirectionsCar
                 )
             }
         }
 
-        // Settings section
+        // Configuración
         item {
             Column(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -123,10 +146,10 @@ fun ProfileScreen() {
             }
         }
 
-        // Logout button
+        // Botón de logout
         item {
             OutlinedButton(
-                onClick = { },
+                onClick = onLogout,
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.outlinedButtonColors(
                     contentColor = AppColors.Destructive
