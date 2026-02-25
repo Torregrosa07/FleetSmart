@@ -159,8 +159,8 @@ fun NavigationGraph(
         }
 
         composable(Screen.Routes.route) {
-            MyRoutesScreen(
-                onStartRoute = { _ ->
+            RoutesScreen(
+                onRouteClick = { route ->
                     onIniciarRuta()
                     navController.navigate(Screen.ActiveRoute.route)
                 }

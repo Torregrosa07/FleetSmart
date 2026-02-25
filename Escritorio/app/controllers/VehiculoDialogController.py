@@ -50,13 +50,21 @@ class VehiculoDialogController(QDialog, Ui_VehiculosDialog):
         matricula = self.leMatricula.text().strip().upper()
         marca = self.leMarca.text().strip()
         modelo = self.leModelo.text().strip()
-        ano = self.leAno.text().strip() 
+        ano_texto = self.leAno.text().strip() 
         proximaITV = self.leITV.text().strip()
 
         if not matricula or not marca or not modelo:
             QMessageBox.warning(self, "Faltan datos", "Por favor rellena matrícula, marca y modelo.")
             return
         
+        # --- CORRECCIÓN AQUÍ ---
+        # Convertir el año a entero, si falla mostramos un aviso y detenemos el guardado
+        try:
+            ano = int(ano_texto) if ano_texto else 0
+        except ValueError:
+            QMessageBox.warning(self, "Dato Inválido", "El año debe ser un número entero válido.")
+            return
+        # -----------------------
         
         self.datos_vehiculo = Vehiculo(
             matricula=matricula,
@@ -65,7 +73,7 @@ class VehiculoDialogController(QDialog, Ui_VehiculosDialog):
             estado="Disponible",
             km_actuales=0,
             proxima_itv=proximaITV,
-            ano= ano
+            ano= ano  
         )
         
         if self.vehiculo_existente:
