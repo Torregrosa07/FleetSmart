@@ -39,9 +39,8 @@ fun ActiveRouteScreen(
     val totalCount = state.stops.size
     val currentProgress = if (totalCount > 0) completedCount.toFloat() / totalCount else 0f
 
-    // NOTA: Hemos quitado el LaunchedEffect de configuración porque ya está en MainActivity
-
     Column(modifier = Modifier.fillMaxSize().background(AppColors.Background)) {
+
         // --- Header con Progreso ---
         Surface(shadowElevation = 4.dp, color = AppColors.Card) {
             Column(modifier = Modifier.padding(16.dp)) {
@@ -50,10 +49,22 @@ fun ActiveRouteScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver", tint = AppColors.Foreground)
                     }
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(state.routeName, fontWeight = FontWeight.Bold, color = AppColors.Foreground)
-                        Text("${state.distance} · ${state.duration}", style = MaterialTheme.typography.bodySmall, color = AppColors.MutedForeground)
+                        Text(
+                            state.routeName.ifEmpty { "Cargando ruta..." },
+                            fontWeight = FontWeight.Bold,
+                            color = AppColors.Foreground
+                        )
+                        Text(
+                            "${state.distance} · ${state.duration}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = AppColors.MutedForeground
+                        )
                     }
-                    Text("${(currentProgress * 100).toInt()}%", color = AppColors.Primary, fontWeight = FontWeight.Bold)
+                    Text(
+                        "${(currentProgress * 100).toInt()}%",
+                        color = AppColors.Primary,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 LinearProgressIndicator(
@@ -65,143 +76,200 @@ fun ActiveRouteScreen(
             }
         }
 
-        // --- Contenido Scrollable ---
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // --- MAPA REAL OSMDROID ---
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(350.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color.LightGray)
-                ) {
-                    AndroidView(
-                        factory = { ctx ->
-                            MapView(ctx).apply {
-                                setTileSource(TileSourceFactory.MAPNIK)
-                                setMultiTouchControls(true)
-                                controller.setZoom(14.0)
+        // --- Contenido ---
+        if (state.isLoading) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = AppColors.Primary)
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
 
-                                val startPoint = GeoPoint(40.4168, -3.7038) // Puerta del Sol
-                                controller.setCenter(startPoint)
-
-                                val routePoints = listOf(
-                                    GeoPoint(40.4168, -3.7038),
-                                    GeoPoint(40.4200, -3.6960),
-                                    GeoPoint(40.4240, -3.6880),
-                                    GeoPoint(40.4150, -3.6840)
-                                )
-
-                                val line = Polyline()
-                                line.setPoints(routePoints)
-                                line.outlinePaint.color = android.graphics.Color.parseColor("#2563EB")
-                                line.outlinePaint.strokeWidth = 15f
-                                overlays.add(line)
-
-                                routePoints.forEachIndexed { index, point ->
-                                    val marker = Marker(this)
-                                    marker.position = point
-                                    marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                                    marker.title = "Parada ${index + 1}"
-                                    overlays.add(marker)
-                                }
-                            }
-                        },
-                        modifier = Modifier.fillMaxSize()
-                    )
-
-                    FloatingActionButton(
-                        onClick = { /* Centrar */ },
+                // --- MAPA CON DATOS REALES ---
+                item {
+                    Box(
                         modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .padding(16.dp)
-                            .size(48.dp),
-                        containerColor = AppColors.Card,
-                        contentColor = AppColors.Primary
+                            .fillMaxWidth()
+                            .height(350.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color.LightGray)
                     ) {
-                        Icon(Icons.Default.MyLocation, contentDescription = "Mi Ubicación")
-                    }
-                }
-            }
+                        // Capturamos los puntos antes del AndroidView para evitar recomposición
+                        val routePoints = state.routePoints
+                        val centerLat = state.centerLat
+                        val centerLon = state.centerLon
 
-            // --- Controles de la Ruta ---
-            item {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    OutlinedButton(
-                        onClick = { viewModel.togglePauseRoute() },
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.outlinedButtonColors(
+                        AndroidView(
+                            factory = { ctx ->
+                                MapView(ctx).apply {
+                                    setTileSource(TileSourceFactory.MAPNIK)
+                                    setMultiTouchControls(true)
+                                }
+                            },
+                            update = { mapView ->
+                                mapView.overlays.clear()
+
+                                if (routePoints.isNotEmpty()) {
+                                    // Centrar el mapa en la primera parada
+                                    mapView.controller.setZoom(14.0)
+                                    mapView.controller.setCenter(GeoPoint(centerLat, centerLon))
+
+                                    // Dibujar la línea de ruta
+                                    val geoPoints = routePoints.map { (lat, lon) -> GeoPoint(lat, lon) }
+
+                                    val line = Polyline()
+                                    line.setPoints(geoPoints)
+                                    line.outlinePaint.color = android.graphics.Color.parseColor("#2563EB")
+                                    line.outlinePaint.strokeWidth = 15f
+                                    mapView.overlays.add(line)
+
+                                    // Marcadores para cada parada
+                                    geoPoints.forEachIndexed { index, point ->
+                                        val marker = Marker(mapView)
+                                        marker.position = point
+                                        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                                        marker.title = when (index) {
+                                            0 -> "Inicio"
+                                            geoPoints.size - 1 -> "Destino final"
+                                            else -> "Parada ${index + 1}"
+                                        }
+                                        mapView.overlays.add(marker)
+                                    }
+                                } else {
+                                    // Sin coordenadas: vista por defecto de Madrid
+                                    mapView.controller.setZoom(12.0)
+                                    mapView.controller.setCenter(GeoPoint(40.4168, -3.7038))
+                                }
+
+                                mapView.invalidate()
+                            },
+                            modifier = Modifier.fillMaxSize()
+                        )
+
+                        FloatingActionButton(
+                            onClick = { /* Centrar en ubicación actual */ },
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(16.dp)
+                                .size(48.dp),
+                            containerColor = AppColors.Card,
                             contentColor = AppColors.Primary
-                        ),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Primary)
-                    ) {
-                        Icon(if (state.isPaused) Icons.Default.PlayCircle else Icons.Default.PauseCircle, null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(if (state.isPaused) "Reanudar" else "Pausar")
-                    }
-                    Button(
-                        onClick = {
-                            viewModel.finishRoute()
-                            onBack()
-                        },
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(containerColor = AppColors.Destructive)
-                    ) {
-                        Text("Finalizar")
+                        ) {
+                            Icon(Icons.Default.MyLocation, contentDescription = "Mi Ubicación")
+                        }
                     }
                 }
-            }
 
-            // --- Lista de paradas ---
-            item {
-                Text(
-                    "Paradas de la Ruta",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = AppColors.Foreground
-                )
-            }
-
-            items(state.stops) { stop ->
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = if (stop.completed) AppColors.Muted else AppColors.Card
-                    ),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Border)
-                ) {
-                    Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.Top) {
-                        IconButton(
-                            onClick = { viewModel.toggleStopComplete(stop.id) },
-                            modifier = Modifier.size(24.dp)
+                // --- Controles de la Ruta ---
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = { viewModel.togglePauseRoute() },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = AppColors.Primary
+                            ),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Primary)
                         ) {
                             Icon(
-                                if (stop.completed) Icons.Default.CheckCircle else Icons.Outlined.Circle,
-                                null,
-                                tint = if (stop.completed) AppColors.Success else AppColors.MutedForeground
+                                if (state.isPaused) Icons.Default.PlayCircle else Icons.Default.PauseCircle,
+                                null
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(if (state.isPaused) "Reanudar" else "Pausar")
+                        }
+                        Button(
+                            onClick = {
+                                viewModel.finishRoute()
+                                onBack()
+                            },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(containerColor = AppColors.Destructive)
+                        ) {
+                            Text("Finalizar")
+                        }
+                    }
+                }
+
+                // --- Lista de paradas ---
+                item {
+                    Text(
+                        "Paradas de la Ruta",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = AppColors.Foreground
+                    )
+                }
+
+                if (state.stops.isEmpty()) {
+                    item {
+                        Box(
+                            modifier = Modifier.fillMaxWidth().padding(32.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                "No hay paradas registradas para esta ruta",
+                                color = AppColors.MutedForeground,
+                                style = MaterialTheme.typography.bodyMedium
                             )
                         }
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Column {
-                            Text(
-                                text = stop.address,
-                                color = if (stop.completed) AppColors.MutedForeground else AppColors.Foreground,
-                                textDecoration = if (stop.completed) androidx.compose.ui.text.style.TextDecoration.LineThrough else null
-                            )
-                            if (stop.phone != null && !stop.completed) {
-                                Button(
-                                    onClick = {},
-                                    modifier = Modifier.padding(top = 8.dp).height(32.dp),
-                                    contentPadding = PaddingValues(horizontal = 12.dp),
-                                    colors = ButtonDefaults.buttonColors(containerColor = AppColors.Primary)
+                    }
+                } else {
+                    items(state.stops) { stop ->
+                        Card(
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (stop.completed) AppColors.Muted else AppColors.Card
+                            ),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Border)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.Top
+                            ) {
+                                IconButton(
+                                    onClick = { viewModel.toggleStopComplete(stop.id) },
+                                    modifier = Modifier.size(24.dp)
                                 ) {
-                                    Icon(Icons.Default.Phone, null, modifier = Modifier.size(12.dp))
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Llamar", fontSize = 12.sp)
+                                    Icon(
+                                        if (stop.completed) Icons.Default.CheckCircle else Icons.Outlined.Circle,
+                                        null,
+                                        tint = if (stop.completed) AppColors.Success else AppColors.MutedForeground
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column {
+                                    Text(
+                                        text = stop.address,
+                                        color = if (stop.completed) AppColors.MutedForeground else AppColors.Foreground,
+                                        textDecoration = if (stop.completed)
+                                            androidx.compose.ui.text.style.TextDecoration.LineThrough
+                                        else null
+                                    )
+                                    if (stop.phone != null && !stop.completed) {
+                                        Button(
+                                            onClick = {},
+                                            modifier = Modifier.padding(top = 8.dp).height(32.dp),
+                                            contentPadding = PaddingValues(horizontal = 12.dp),
+                                            colors = ButtonDefaults.buttonColors(containerColor = AppColors.Primary)
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Phone,
+                                                null,
+                                                modifier = Modifier.size(12.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(4.dp))
+                                            Text("Llamar", fontSize = 12.sp)
+                                        }
+                                    }
                                 }
                             }
                         }
