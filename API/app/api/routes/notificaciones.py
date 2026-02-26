@@ -59,3 +59,13 @@ async def notificar_incidencia_actualizada(request: IncidenciaRequest):
         raise HTTPException(status_code=400, detail=resultado)
     
     return NotificacionResponse(**resultado)
+
+
+@router.get("/debug/{id_conductor}")
+async def debug_conductor(id_conductor: str):
+    from firebase_admin import db
+    try:
+        datos = db.reference(f'conductores/{id_conductor}').get()
+        return {"datos": datos, "tipo": str(type(datos))}
+    except Exception as e:
+        return {"error": str(e)}
