@@ -64,8 +64,14 @@ async def notificar_incidencia_actualizada(request: IncidenciaRequest):
 @router.get("/debug/{id_conductor}")
 async def debug_conductor(id_conductor: str):
     from firebase_admin import db
+    import traceback
     try:
-        datos = db.reference(f'conductores/{id_conductor}').get()
+        ref = db.reference(f'conductores/{id_conductor}')
+        datos = ref.get()
         return {"datos": datos, "tipo": str(type(datos))}
     except Exception as e:
-        return {"error": str(e)}
+        return {
+            "error": str(e),
+            "tipo_error": type(e).__name__,
+            "traceback": traceback.format_exc()
+        }
