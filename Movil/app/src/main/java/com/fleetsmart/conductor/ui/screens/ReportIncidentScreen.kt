@@ -21,6 +21,7 @@ import com.fleetsmart.conductor.data.SessionManager
 import com.fleetsmart.conductor.data.model.IncidentType
 import com.fleetsmart.conductor.ui.components.AppCard
 import com.fleetsmart.conductor.ui.theme.AppColors
+import com.fleetsmart.conductor.ui.viewmodel.IncidentReportState
 import com.fleetsmart.conductor.ui.viewmodel.IncidentReportViewModel
 
 @Composable
@@ -102,7 +103,7 @@ private fun SuccessScreen(onNuevaIncidencia: () -> Unit) {
 
 @Composable
 private fun IncidentFormScreen(
-    state: com.fleetsmart.conductor.ui.viewmodel.IncidentReportState,
+    state: IncidentReportState,
     tieneAsignacion: Boolean,
     onTypeSelected: (IncidentType) -> Unit,
     onDescriptionChanged: (String) -> Unit,
@@ -165,7 +166,6 @@ private fun IncidentFormScreen(
                             text = "Tipo de Incidencia",
                             style = MaterialTheme.typography.titleMedium
                         )
-
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -231,51 +231,30 @@ private fun IncidentFormScreen(
             }
         }
 
-        // Botón enviar + aviso emergencia
+        // Botón enviar
         item {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Button(
-                    onClick = onSubmit,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    enabled = canSubmit && !state.isSubmitting,
-                    colors = ButtonDefaults.buttonColors(containerColor = AppColors.Primary)
-                ) {
-                    if (state.isSubmitting) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            color = AppColors.PrimaryForeground,
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Icon(
-                            imageVector = Icons.Default.Send,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Enviar Reporte")
-                    }
-                }
-
-                AppCard(modifier = Modifier.fillMaxWidth()) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.Top
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Warning,
-                            contentDescription = null,
-                            tint = AppColors.Warning,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Text(
-                            text = "Si se trata de una emergencia, contacta inmediatamente con el centro de operaciones al 900 123 456",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = AppColors.Warning
-                        )
-                    }
+            Button(
+                onClick = onSubmit,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                enabled = canSubmit && !state.isSubmitting,
+                colors = ButtonDefaults.buttonColors(containerColor = AppColors.Primary)
+            ) {
+                if (state.isSubmitting) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = AppColors.PrimaryForeground,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Send,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Enviar Reporte")
                 }
             }
         }

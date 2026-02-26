@@ -24,7 +24,6 @@ fun ProfileScreen(
     val conductor by SessionManager.conductorActual.collectAsState()
     val asignacion by SessionManager.asignacionActiva.collectAsState()
 
-    // Iniciales del conductor
     val iniciales = conductor?.nombre
         ?.split(" ")
         ?.take(2)
@@ -106,46 +105,6 @@ fun ProfileScreen(
             }
         }
 
-        // Configuración
-        item {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Text(
-                    text = "Configuración",
-                    style = MaterialTheme.typography.titleMedium
-                )
-
-                AppCard {
-                    Column {
-                        SettingsItem(
-                            icon = Icons.Default.Notifications,
-                            title = "Notificaciones",
-                            onClick = { }
-                        )
-                        HorizontalDivider(color = AppColors.Border)
-                        SettingsItem(
-                            icon = Icons.Default.Language,
-                            title = "Idioma",
-                            onClick = { }
-                        )
-                        HorizontalDivider(color = AppColors.Border)
-                        SettingsItem(
-                            icon = Icons.Default.Help,
-                            title = "Ayuda y soporte",
-                            onClick = { }
-                        )
-                        HorizontalDivider(color = AppColors.Border)
-                        SettingsItem(
-                            icon = Icons.Default.Info,
-                            title = "Acerca de",
-                            onClick = { }
-                        )
-                    }
-                }
-            }
-        }
-
         // Botón de logout
         item {
             OutlinedButton(
@@ -200,38 +159,5 @@ private fun ProfileInfoCard(
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun SettingsItem(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    title: String,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = AppColors.MutedForeground,
-            modifier = Modifier.size(24.dp)
-        )
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.weight(1f)
-        )
-        Icon(
-            imageVector = Icons.Default.ChevronRight,
-            contentDescription = null,
-            tint = AppColors.MutedForeground,
-            modifier = Modifier.size(20.dp)
-        )
     }
 }
