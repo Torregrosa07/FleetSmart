@@ -53,28 +53,19 @@ dependencies {
 
     implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
     implementation("com.google.firebase:firebase-database-ktx")
+    implementation("com.google.firebase:firebase-messaging-ktx")
 
     implementation(libs.play.services.location)
 
-    // --- Dependencias traídas del Mockup ---
-    // Iconos extendidos de Material 3
     implementation("androidx.compose.material:material-icons-extended")
-
-    // Navegación en Compose
     implementation("androidx.navigation:navigation-compose:2.8.5")
-
-    // ViewModel y Lifecycle
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
-
-    // Mapas (OSMdroid)
     implementation("org.osmdroid:osmdroid-android:6.1.18")
-
-
-
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
     implementation("com.google.firebase:firebase-auth-ktx")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

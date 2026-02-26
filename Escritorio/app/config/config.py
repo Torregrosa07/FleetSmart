@@ -9,7 +9,7 @@ import os
 # API DE NOTIFICACIONES
 # ============================================================================
 
-API_BASE_URL = "http://localhost:8000"
+API_BASE_URL = "https://fleetsmartapi.onrender.com"
 API_NOTIFICACIONES_URL = f"{API_BASE_URL}/api/notificaciones"
 
 # ============================================================================

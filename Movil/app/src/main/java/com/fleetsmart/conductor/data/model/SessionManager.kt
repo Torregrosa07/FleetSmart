@@ -1,19 +1,14 @@
 package com.fleetsmart.conductor.data
 
+import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.tasks.await
 
-/**
- * Gestiona la sesión del conductor autenticado.
- * Singleton que reemplaza a ConductorData (que tenía datos hardcodeados).
- *
- * Después del login, carga los datos del conductor desde /conductores/{uid}
- * y los mantiene disponibles para toda la app.
- */
 object SessionManager {
 
     private val auth = FirebaseAuth.getInstance()
@@ -21,20 +16,12 @@ object SessionManager {
         "https://fleetsmart-1-default-rtdb.europe-west1.firebasedatabase.app"
     )
 
-    // Datos del conductor logueado
     private val _conductorActual = MutableStateFlow<ConductorSesion?>(null)
     val conductorActual: StateFlow<ConductorSesion?> = _conductorActual.asStateFlow()
 
-    // Asignación activa (se carga después del login)
     private val _asignacionActiva = MutableStateFlow<AsignacionActiva?>(null)
     val asignacionActiva: StateFlow<AsignacionActiva?> = _asignacionActiva.asStateFlow()
 
-    /**
-     * Autentica al conductor con email y contraseña.
-     * Después carga su perfil desde Firebase Database.
-     *
-     * @return Result.success si todo OK, Result.failure con el error si falla
-     */
     suspend fun login(email: String, password: String): Result<ConductorSesion> {
         return try {
             // 1. Autenticar con Firebase Auth
@@ -69,7 +56,10 @@ object SessionManager {
 
             _conductorActual.value = conductor
 
-            // 4. Cargar asignación activa (si tiene)
+            // 4. Guardar FCM token en Firebase
+            guardarFcmToken(uid)
+
+            // 5. Cargar asignación activa
             cargarAsignacionActiva(uid)
 
             Result.success(conductor)
@@ -80,8 +70,23 @@ object SessionManager {
     }
 
     /**
-     * Busca si el conductor tiene una asignación activa en /asignaciones
+     * Obtiene el token FCM del dispositivo y lo guarda en /conductores/{uid}/fcm_token
      */
+    private suspend fun guardarFcmToken(uid: String) {
+        try {
+            val token = FirebaseMessaging.getInstance().token.await()
+            database.getReference("conductores")
+                .child(uid)
+                .child("fcm_token")
+                .setValue(token)
+                .await()
+            Log.d("SessionManager", "✅ FCM token guardado: $token")
+        } catch (e: Exception) {
+            Log.e("SessionManager", "❌ Error guardando FCM token: ${e.message}")
+            // No es crítico, el login sigue adelante
+        }
+    }
+
     private suspend fun cargarAsignacionActiva(uid: String) {
         try {
             val snapshot = database.getReference("asignaciones")
@@ -111,40 +116,25 @@ object SessionManager {
         }
     }
 
-    /**
-     * Recarga la asignación activa (útil después de cambios)
-     */
     suspend fun refrescarAsignacion() {
         val uid = _conductorActual.value?.uid ?: return
         _asignacionActiva.value = null
         cargarAsignacionActiva(uid)
     }
 
-    /**
-     * Cierra la sesión
-     */
     fun logout() {
         auth.signOut()
         _conductorActual.value = null
         _asignacionActiva.value = null
     }
 
-    /**
-     * Verifica si hay sesión activa
-     */
     fun estaLogueado(): Boolean {
         return auth.currentUser != null && _conductorActual.value != null
     }
 
-    /**
-     * Obtiene el UID del conductor actual
-     */
     fun getUid(): String? = auth.currentUser?.uid
 }
 
-/**
- * Datos del conductor en sesión
- */
 data class ConductorSesion(
     val uid: String,
     val nombre: String,
@@ -155,9 +145,6 @@ data class ConductorSesion(
     val estado: String
 )
 
-/**
- * Datos de la asignación activa del conductor
- */
 data class AsignacionActiva(
     val idAsignacion: String,
     val idRuta: String,
