@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.fleetsmart.conductor.data.SessionManager
 import com.fleetsmart.conductor.data.model.IncidentType
 import com.fleetsmart.conductor.ui.components.AppCard
 import com.fleetsmart.conductor.ui.theme.AppColors
@@ -27,22 +28,27 @@ fun ReportIncidentScreen(
     viewModel: IncidentReportViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val asignacion by SessionManager.asignacionActiva.collectAsState()
 
-    if (state.isSubmitted) {
-        SuccessScreen()
-    } else {
-        IncidentFormScreen(
-            state = state,
-            onTypeSelected = { viewModel.setIncidentType(it) },
-            onDescriptionChanged = { viewModel.setDescription(it) },
-            onSubmit = { viewModel.submitIncident() },
-            canSubmit = viewModel.canSubmit
-        )
+    when {
+        state.isSubmitted -> {
+            SuccessScreen(onNuevaIncidencia = { viewModel.resetForm() })
+        }
+        else -> {
+            IncidentFormScreen(
+                state = state,
+                tieneAsignacion = asignacion != null,
+                onTypeSelected = { viewModel.setIncidentType(it) },
+                onDescriptionChanged = { viewModel.setDescription(it) },
+                onSubmit = { viewModel.submitIncident() },
+                canSubmit = viewModel.canSubmit
+            )
+        }
     }
 }
 
 @Composable
-private fun SuccessScreen() {
+private fun SuccessScreen(onNuevaIncidencia: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -74,18 +80,30 @@ private fun SuccessScreen() {
         Spacer(modifier = Modifier.height(12.dp))
 
         Text(
-            text = "Tu reporte ha sido enviado exitosamente. El equipo de gestión lo revisará pronto.",
+            text = "Tu reporte ha sido enviado al equipo de gestión. Lo revisarán lo antes posible.",
             style = MaterialTheme.typography.bodyMedium,
             color = AppColors.MutedForeground,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 32.dp)
         )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        OutlinedButton(
+            onClick = onNuevaIncidencia,
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = AppColors.Primary)
+        ) {
+            Icon(Icons.Default.Add, null, modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Reportar otra incidencia")
+        }
     }
 }
 
 @Composable
 private fun IncidentFormScreen(
     state: com.fleetsmart.conductor.ui.viewmodel.IncidentReportState,
+    tieneAsignacion: Boolean,
     onTypeSelected: (IncidentType) -> Unit,
     onDescriptionChanged: (String) -> Unit,
     onSubmit: () -> Unit,
@@ -99,9 +117,7 @@ private fun IncidentFormScreen(
     ) {
         // Header
         item {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
                     text = "Reportar Incidencia",
                     style = MaterialTheme.typography.headlineMedium
@@ -114,24 +130,43 @@ private fun IncidentFormScreen(
             }
         }
 
-        // Form
+        // Aviso si no hay asignación activa
+        if (!tieneAsignacion) {
+            item {
+                AppCard(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = null,
+                            tint = AppColors.Info,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Text(
+                            text = "No tienes una ruta activa. La incidencia se registrará sin datos de vehículo ni ruta.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = AppColors.Info
+                        )
+                    }
+                }
+            }
+        }
+
+        // Formulario
         item {
             AppCard {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(24.dp)
-                ) {
-                    // Incident Type
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
+                Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
+
+                    // Tipo de incidencia
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Text(
                             text = "Tipo de Incidencia",
                             style = MaterialTheme.typography.titleMedium
                         )
 
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -161,10 +196,8 @@ private fun IncidentFormScreen(
                         }
                     }
 
-                    // Description
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
+                    // Descripción
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
                             text = "Descripción del Problema",
                             style = MaterialTheme.typography.titleMedium
@@ -178,32 +211,42 @@ private fun IncidentFormScreen(
                             placeholder = {
                                 Text("Describe el problema con el mayor detalle posible...")
                             },
+                            isError = state.error != null,
                             colors = OutlinedTextFieldDefaults.colors(
                                 unfocusedContainerColor = AppColors.InputBackground,
-                                focusedContainerColor = AppColors.InputBackground
+                                focusedContainerColor = AppColors.InputBackground,
+                                focusedBorderColor = AppColors.Primary,
+                                errorBorderColor = AppColors.Destructive
                             )
                         )
+                        if (state.error != null) {
+                            Text(
+                                text = state.error,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = AppColors.Destructive
+                            )
+                        }
                     }
                 }
             }
         }
 
-        // Submit Button
+        // Botón enviar + aviso emergencia
         item {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Button(
                     onClick = onSubmit,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp),
-                    enabled = canSubmit && !state.isSubmitting
+                    enabled = canSubmit && !state.isSubmitting,
+                    colors = ButtonDefaults.buttonColors(containerColor = AppColors.Primary)
                 ) {
                     if (state.isSubmitting) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(20.dp),
-                            color = AppColors.PrimaryForeground
+                            color = AppColors.PrimaryForeground,
+                            strokeWidth = 2.dp
                         )
                     } else {
                         Icon(
@@ -216,10 +259,7 @@ private fun IncidentFormScreen(
                     }
                 }
 
-                // Warning
-                AppCard(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
+                AppCard(modifier = Modifier.fillMaxWidth()) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalAlignment = Alignment.Top
@@ -240,9 +280,7 @@ private fun IncidentFormScreen(
             }
         }
 
-        item {
-            Spacer(modifier = Modifier.height(80.dp))
-        }
+        item { Spacer(modifier = Modifier.height(80.dp)) }
     }
 }
 
